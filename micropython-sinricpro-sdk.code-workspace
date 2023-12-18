@@ -1,8 +1,8 @@
 {
 	"folders": [
 		{
-			"name": "micropython-sinricpro-sdk",
 			"path": "."
 		}
-	]
+	],
+	"settings": {}
 }
