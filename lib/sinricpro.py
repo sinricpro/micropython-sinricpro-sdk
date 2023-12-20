@@ -15,6 +15,7 @@ class SinricPro:
         self.publish_queue = AsyncQueue(5) # create publish queue
         self.received_queue = AsyncQueue(5) # create publish queue
         self.signer = Signer()
+        self.sdkversion = '0.0.1'
 
     def add_device(self, device) -> None:
         self.devices.append(device)
@@ -30,6 +31,9 @@ class SinricPro:
         headers = []
         headers.append(("appkey", self.app_key))
         headers.append(("deviceids", ';'.join(device_ids)))
+        headers.append(("platform", 'micropython'))
+        headers.append(('restoredevicestates', ('true' if self.restore_device_states else 'false')))
+        headers.append(("sdkversion", self.sdkversion))
 
         if self.enable_log : print("Connecting...")
 
@@ -109,7 +113,7 @@ class SinricPro:
 
             gc.collect()
  
-    def start(self, app_key, app_secret, server_url = "ws://ws.sinric.pro:80", restoredevicestates = False, enable_log=False,) -> None:
+    def start(self, app_key, app_secret,*, server_url = "ws://testws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
         if is_null_or_empty(app_key):
             raise exceptions.InvalidAppKeyError
 
@@ -119,7 +123,7 @@ class SinricPro:
         self.app_key = app_key
         self.app_secret = app_secret
         self.server_url = server_url
-        self.restoredevicestates = restoredevicestates
+        self.restore_device_states = restore_device_states
         self.enable_log = enable_log
 
         if self.enable_log : print("Start SinricPro..")
