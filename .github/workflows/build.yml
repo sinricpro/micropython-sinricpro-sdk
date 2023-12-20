@@ -18,6 +18,9 @@ jobs:
         run: |
           pip3 install mpy-cross
           python3 -m mpy_cross $SRC_FILE
+      - name: List files in the repository
+        run: |
+            ls -lr .
       - name: Committing changes...
         run: |
           if [ $(git diff | wc -l) -gt 0 ]; then
