@@ -2,6 +2,10 @@
 
 ## Under development. 
 
+### What's Working
+
+- Switch On/Off
+
 ### Installation:
 
 1. Install Micropython (https://docs.micropython.org/en/latest/esp32/tutorial/intro.html) 
