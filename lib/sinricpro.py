@@ -113,7 +113,7 @@ class SinricPro:
 
             gc.collect()
  
-    def start(self, app_key, app_secret,*, server_url = "ws://testws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
+    def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
         if is_null_or_empty(app_key):
             raise exceptions.InvalidAppKeyError
 
