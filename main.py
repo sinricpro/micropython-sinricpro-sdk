@@ -3,6 +3,12 @@ from lib.sinricpro_switch import SinricProSwitch
 import uasyncio as a 
 import network
 
+ssid = ""
+ssid_password = ""
+app_key    = ""
+app_secret = ""
+device_id  = ""
+
 async def on_power_state_callback(device_id, state):
     # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
@@ -16,21 +22,18 @@ def do_connect():
     if not sta_if.isconnected():
         print('Connecting to network...')
         sta_if.active(True)
-        sta_if.connect("June-2G", "wifipassword")
+        sta_if.connect(ssid, ssid_password)
         while not sta_if.isconnected():
             pass
-    print('network config:', sta_if.ifconfig())
-    a = sta_if.config('mac')
-    print('MAC {:02x}:{:02x}:{:02x}:{:02x}:{:02x}'.format(a[0],a[1],a[2],a[3],a[4]))
-
+    print('Connected network config:', sta_if.ifconfig())
+    
 # start sinricpro
 def do_sinricpro():
     sinricpro = SinricPro()
-    sinricpro_switch = SinricProSwitch("<device_id>")
+    sinricpro_switch = SinricProSwitch(device_id)
     sinricpro_switch.on_power_state(on_power_state_callback)    
     sinricpro.add_device(sinricpro_switch)    
-    sinricpro.start("<appkey>", "<appsecret>",
-                    enable_log=True)
+    sinricpro.start(app_key, app_secret, enable_log=True)
 
 # main coroutine
 async def main():
