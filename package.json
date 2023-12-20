@@ -1,0 +1,6 @@
+{
+    "urls": [
+      ["sinricpro.mpy", "github:sinricpro/micropython-sinricpro-sdk/sinricpro.mpy"]
+    ],
+    "version": "0.0.1"
+  }

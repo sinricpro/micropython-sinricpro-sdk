@@ -1,12 +1,13 @@
-from async_websocket_client import AsyncWebsocketClient
-from async_queue import AsyncQueue
-from lib.exceptions import exceptions
-from lib.sinricpro_constants import SinricProConstants
-from lib.utils.generic import is_null_or_empty
-from lib.utils.signer import Signer
 import uasyncio
 import json
 import gc
+from sinricpro.async_websocket_client import AsyncWebsocketClient
+from sinricpro.async_queue import AsyncQueue
+from sinricpro.exceptions import exceptions
+from sinricpro.sinricpro_constants import SinricProConstants
+from sinricpro.utils.generic import is_null_or_empty
+from sinricpro.utils.signer import Signer
+
 
 class SinricPro:
     def __init__(self):

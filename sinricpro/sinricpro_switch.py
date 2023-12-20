@@ -1,4 +1,4 @@
-from lib.capabilities.power_state_controller import PowerStateController
+from sinricpro.capabilities.power_state_controller import PowerStateController
 
 class SinricProSwitch(PowerStateController):
     def __init__(self, device_id):
