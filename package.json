@@ -2,7 +2,7 @@
     "urls": [
       ["sinricpro/__init__.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/__init__.py"],
       ["sinricpro/async_queue.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/async_queue.py"],
-      ["sinricpro/async_websocket_client.py", "github:sinricpro//micropython-sinricpro-sdk/sinricpro/async_websocket_client.py"],
+      ["sinricpro/async_websocket_client.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/async_websocket_client.py"],
       ["sinricpro/exceptions.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/exceptions.py"],
       ["sinricpro/sinricpro.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro.py"],
       ["sinricpro/sinricpro_constants.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro_constants.py"],
@@ -13,7 +13,6 @@
       ["sinricpro/utils/signer.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/signer.py"],
 
       ["sinricpro/capabilities/power_state_controller.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/power_state_controller.py"]
-
     ],
     "version": "0.0.1"
   }
