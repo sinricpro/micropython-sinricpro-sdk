@@ -1,17 +1,17 @@
 {
     "urls": [
-      ["sinricpro/__init__.py", "github:org/micropython-sinricpro-sdk/sinricpro/__init__.py"],
-      ["sinricpro/async_queue.py", "github:org/micropython-sinricpro-sdk/sinricpro/async_queue.py"],
-      ["sinricpro/async_websocket_client.py", "github:org/micropython-sinricpro-sdk/sinricpro/async_websocket_client.py"],
-      ["sinricpro/exceptions.py", "github:org/micropython-sinricpro-sdk/sinricpro/exceptions.py"],
-      ["sinricpro/sinricpro.py", "github:org/micropython-sinricpro-sdk/sinricpro/sinricpro.py"],
-      ["sinricpro/sinricpro_constants.py", "github:org/micropython-sinricpro-sdk/sinricpro/sinricpro_constants.py"],
-      ["sinricpro/sinricpro_switch.py", "github:org/micropython-sinricpro-sdk/sinricpro/sinricpro_switch.py"],
-      ["sinricpro/utils/generic.py", "github:org/micropython-sinricpro-sdk/sinricpro/utils/generic.py"],
-      ["sinricpro/utils/hmac.py", "github:org/micropython-sinricpro-sdk/sinricpro/utils/hmac.py"],
-      ["sinricpro/utils/signer.py", "github:org/micropython-sinricpro-sdk/sinricpro/utils/signer.py"],
+      ["sinricpro/__init__.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/__init__.py"],
+      ["sinricpro/async_queue.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/async_queue.py"],
+      ["sinricpro/async_websocket_client.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/async_websocket_client.py"],
+      ["sinricpro/exceptions.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/exceptions.py"],
+      ["sinricpro/sinricpro.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro.py"],
+      ["sinricpro/sinricpro_constants.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro_constants.py"],
+      ["sinricpro/sinricpro_switch.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro_switch.py"],
+      ["sinricpro/utils/generic.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/utils/generic.py"],
+      ["sinricpro/utils/hmac.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/utils/hmac.py"],
+      ["sinricpro/utils/signer.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/utils/signer.py"],
 
-      ["sinricpro/capabilities/power_state_controller.py", "github:org/micropython-sinricpro-sdk/sinricpro/capabilities/power_state_controller.py"]
+      ["sinricpro/capabilities/power_state_controller.py", "github:org/sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/power_state_controller.py"]
 
     ],
     "version": "0.0.1"
