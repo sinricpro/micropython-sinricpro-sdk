@@ -129,7 +129,6 @@ class SinricPro:
     async def _process_publish_queue(self) -> None:
         try:
             async for message in self.publish_queue:
-                print("Got message!")
                 if self.enable_log :
                     self.log.info('-> : {}'.format(message))
                 await self.ws.send(message)
