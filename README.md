@@ -6,21 +6,21 @@ Still under development!
 
 ### What's Working
 
-|Sinric Pro |Supported ? | Notes
+|Device Type |Supported ? | Notes
 |---        |---               |--- 
-| `Switch`  | [x]           | -
-| `Blinds`  | [] | -
-| `Dimmable Switch` | []  | -
-| `Fan` | [] | -
-| `Garage Door` | [] | -
-| `Light` | [] | -
-| `Lock` | [] | -
-| `Thermostat` | [] | -
-| `TV` | [] | On and Off only.
-| `AC Unit` | [] | -
-| `Temperature Sensor` | [] | -
-| `Motion Sensor` | [] | - 
-| `Contact Sensor` | [] | - 
+| `Switch`  | <ul><li>[x]</li><li>           | -
+| `Blinds`  | <ul><li>[]</li><li> | -
+| `Dimmable Switch` | <ul><li>[]</li><li>  | -
+| `Fan` | <ul><li>[]</li><li> | -
+| `Garage Door` | <ul><li>[]</li><li> | -
+| `Light` | <ul><li>[]</li><li> | -
+| `Lock` | <ul><li>[]</li><li> | -
+| `Thermostat` | <ul><li>[]</li><li> | -
+| `TV` | <ul><li>[]</li><li> | -
+| `AC Unit` |<ul><li>[]</li><li> | -
+| `Temperature Sensor` | <ul><li>[]</li><li> | -
+| `Motion Sensor` | <ul><li>[]</li><li> | - 
+| `Contact Sensor` | <ul><li>[]</li><li> | - 
 
 ### How do I install it?
 
