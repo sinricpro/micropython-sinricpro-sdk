@@ -26,8 +26,10 @@ Still under development!
 
 Using mpremote: (pip install --user mpremote)
 
+**make sure device is not connected to IDE**
+
 ```
-mpremote mip install github:sinricpro/micropython-sinricpro-sdk **make sure device is not connected to IDE**
+mpremote mip install github:sinricpro/micropython-sinricpro-sdk 
 ```
 
 or
