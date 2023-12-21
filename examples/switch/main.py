@@ -1,11 +1,14 @@
-from sinricpro.sinricpro import SinricPro 
+from sinricpro import SinricPro 
 from sinricpro.sinricpro_switch import SinricProSwitch
 
 import uasyncio as a 
 import network
 
+# enter wifi details
 ssid = ""
 ssid_password = ""
+
+# get from https://portal.sinric.pro
 app_key    = ""
 app_secret = ""
 device_id  = ""
