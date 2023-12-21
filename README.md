@@ -4,23 +4,23 @@ Alexa, Google Home, SmartThings and cloud for MicroPython.
 
 Still under development!
 
-### What's Working
+### Which device types are working as of now?
 
 |Device Type |Supported ? | Notes
 |---        |---               |--- 
-| `Switch`  | <ul><li>[x]</li></ul>           | -
-| `Blinds`  | <ul><li>[]</li></ul> | -
-| `Dimmable Switch` | <ul><li>[]</li></ul>  | -
-| `Fan` | <ul><li>[]</li></ul> | -
-| `Garage Door` | <ul><li>[]</li></ul> | -
-| `Light` | <ul><li>[]</li></ul> | -
-| `Lock` | <ul><li>[]</li></ul> | -
-| `Thermostat` | <ul><li>[]</li></ul> | -
-| `TV` | <ul><li>[]</li></ul> | -
-| `AC Unit` |<ul><li>[]</li></ul> | -
-| `Temperature Sensor` | <ul><li>[]</li></ul> | -
-| `Motion Sensor` | <ul><li>[]</li></ul> | - 
-| `Contact Sensor` | <ul><li>[]</li></ul> | - 
+| `Switch`  | <ul><li>- [x] Completed</li></ul>           | -
+| `Blinds`  |  | -
+| `Dimmable Switch` |   | -
+| `Fan` |  | -
+| `Garage Door` |  | -
+| `Light` |  | -
+| `Lock` |  | -
+| `Thermostat` |  | -
+| `TV` |  | -
+| `AC Unit` | | -
+| `Temperature Sensor` |  | -
+| `Motion Sensor` |  | - 
+| `Contact Sensor` |  | - 
 
 ### How do I install it?
 
