@@ -85,7 +85,6 @@ class SinricPro:
             payload['instanceId'] = instance_id
 
         signature = self.signer.get_signature(self.app_secret, payload)
-
         return json.dumps({"header": header, "payload": payload, "signature": signature})
 
     def _get_event_json(self, action:str, device_id:str, value:str, type_of_interaction:str="PHYSICAL_INTERACTION") -> str:
@@ -110,7 +109,7 @@ class SinricPro:
         signature = self.signer.get_signature(self.app_secret, payload)
         return json.dumps( {"header": header, "payload": payload, "signature": signature} )
 
-    async def _handle_set_power_state(self, message_dict):
+    async def _handle_set_power_state(self, message_dict) -> None:
         try:
             target_device_id = message_dict['payload']['deviceId']
             state = message_dict['payload']['value']['state']
@@ -157,7 +156,7 @@ class SinricPro:
 
             gc.collect()
 
-    def _raise_event(self, device_id, action, value=None, cause="PHYSICAL_INTERACTION"):
+    def _raise_event(self, device_id, action, value=None, cause="PHYSICAL_INTERACTION") -> None:
         if self.limiter.try_acquire() :
             if action == SinricProConstants.SET_POWER_STATE:
                 response = self._get_event_json(action, device_id, value, cause)
@@ -168,7 +167,7 @@ class SinricPro:
         else:
             self.log.error("Rate limit excceded. Adjusted rate:{}".format(self.limiter.events_per_minute))
 
-    def _send_power_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION"):
+    def _send_power_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
         self.log.info('Sending power state event')
         value = {"state" : "On" if state else "Off"}
         self._raise_event(device_id, SinricProConstants.SET_POWER_STATE, value, cause)
