@@ -6,7 +6,21 @@ Still under development!
 
 ### What's Working
 
-- Switch On/Off
+|Sinric Pro |Supported ? | Notes
+|---        |---               |--- 
+| `Switch`  | [x]           | -
+| `Blinds`  | [] | -
+| `Dimmable Switch` | []  | -
+| `Fan` | [] | -
+| `Garage Door` | [] | -
+| `Light` | [] | -
+| `Lock` | [] | -
+| `Thermostat` | [] | -
+| `TV` | [] | On and Off only.
+| `AC Unit` | [] | -
+| `Temperature Sensor` | [] | -
+| `Motion Sensor` | [] | - 
+| `Contact Sensor` | [] | - 
 
 ### How do I install it?
 

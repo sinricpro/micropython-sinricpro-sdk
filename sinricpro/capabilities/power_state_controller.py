@@ -6,6 +6,9 @@ class PowerStateController:
 
     def on_power_state(self, callback):
         self.power_state_callback = callback
-  
-    #def send_power_state_event(self, state, cause="FSTR_SINRICPRO_PHYSICAL_INTERACTION"):
-        # Implement logic to send event using device specific methods
+
+    def on_send_power_state_event_callback(self, callback):
+        self.send_power_state_event_callback = callback
+
+    def send_power_state_event(self, state: bool, cause="PHYSICAL_INTERACTION"):
+        self.send_power_state_event_callback(self.device_id, state, cause)

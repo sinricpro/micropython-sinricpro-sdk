@@ -4,7 +4,6 @@ class exceptions:
 
     class InvalidAppKeyError(SinricProError):
         pass
-    
     class InvalidAppSecretError(SinricProError):
         pass
 
