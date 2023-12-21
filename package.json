@@ -1,5 +1,7 @@
 {
     "urls": [
+      ["sinricpro/manifest.py", "github:sinricpro/micropython-sinricpro-sdk/manifest.py"],
+
       ["sinricpro/__init__.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/__init__.py"],
       ["sinricpro/async_queue.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/async_queue.py"],
       ["sinricpro/async_websocket_client.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/async_websocket_client.py"],
