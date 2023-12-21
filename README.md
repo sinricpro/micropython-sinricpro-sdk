@@ -8,19 +8,19 @@ Still under development!
 
 |Device Type |Supported ? | Notes
 |---        |---               |--- 
-| `Switch`  | <ul><li>[x]</li><li>           | -
-| `Blinds`  | <ul><li>[]</li><li> | -
-| `Dimmable Switch` | <ul><li>[]</li><li>  | -
-| `Fan` | <ul><li>[]</li><li> | -
-| `Garage Door` | <ul><li>[]</li><li> | -
-| `Light` | <ul><li>[]</li><li> | -
-| `Lock` | <ul><li>[]</li><li> | -
-| `Thermostat` | <ul><li>[]</li><li> | -
-| `TV` | <ul><li>[]</li><li> | -
-| `AC Unit` |<ul><li>[]</li><li> | -
-| `Temperature Sensor` | <ul><li>[]</li><li> | -
-| `Motion Sensor` | <ul><li>[]</li><li> | - 
-| `Contact Sensor` | <ul><li>[]</li><li> | - 
+| `Switch`  | <ul><li>[x]</li></ul>           | -
+| `Blinds`  | <ul><li>[]</li></ul> | -
+| `Dimmable Switch` | <ul><li>[]</li></ul>  | -
+| `Fan` | <ul><li>[]</li></ul> | -
+| `Garage Door` | <ul><li>[]</li></ul> | -
+| `Light` | <ul><li>[]</li></ul> | -
+| `Lock` | <ul><li>[]</li></ul> | -
+| `Thermostat` | <ul><li>[]</li></ul> | -
+| `TV` | <ul><li>[]</li></ul> | -
+| `AC Unit` |<ul><li>[]</li></ul> | -
+| `Temperature Sensor` | <ul><li>[]</li></ul> | -
+| `Motion Sensor` | <ul><li>[]</li></ul> | - 
+| `Contact Sensor` | <ul><li>[]</li></ul> | - 
 
 ### How do I install it?
 
