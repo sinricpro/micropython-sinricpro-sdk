@@ -9,18 +9,20 @@ Still under development!
 |Device Type |Supported ? | Notes
 |---        |---               |--- 
 | `Switch`  | <ul><li>- [x] Completed</li></ul>           | -
-| `Blinds`  |  | -
-| `Dimmable Switch` |   | -
-| `Fan` |  | -
-| `Garage Door` |  | -
-| `Light` |  | -
-| `Lock` |  | -
-| `Thermostat` |  | -
-| `TV` |  | -
-| `AC Unit` | | -
-| `Temperature Sensor` |  | -
-| `Motion Sensor` |  | - 
-| `Contact Sensor` |  | - 
+| `Blinds`  | <ul><li>- [x] Completed</li></ul> | -
+| `Dimmable Switch` | <ul><li>- [x] Completed</li></ul>  | -
+| `Fan` | <ul><li>- [x] Completed</li></ul> | -
+| `Garage Door` | <ul><li>- [x] Completed</li></ul> | -
+| `Light` | <ul><li>- [x] Completed</li></ul>  | -
+| `Lock` | <ul><li>- [x] Completed</li></ul> | -
+| `Thermostat` | <ul><li>- [x] Completed</li></ul>  | -
+| `TV` | <ul><li>- [x] Completed</li></ul> | -
+| `AC Unit` | <ul><li>- [x] Completed</li></ul> | -
+| `Temperature Sensor` | <ul><li>- [x] Completed</li></ul> | -
+| `Motion Sensor` | <ul><li>- [x] Completed</li></ul> | - 
+| `Contact Sensor` | <ul><li>- [x] Completed</li></ul> | - 
+| `Speaker` | <ul><li>- [x] Completed</li></ul> | - 
+| `Custom Device Types` | - | - 
 
 ### How do I install it?
 

@@ -160,4 +160,6 @@ cython_debug/
 #.idea/
 
 main.py
+main_push_button.py
+main_timer_events.py
 tools/

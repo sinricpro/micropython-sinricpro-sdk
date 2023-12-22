@@ -1,5 +1,5 @@
-from sinricpro import SinricPro 
-from sinricpro.sinricpro_switch import SinricProSwitch
+from sinricpro import SinricPro
+from sinricpro.devices.sinricpro_switch import SinricProSwitch
 
 import uasyncio as a 
 import network
@@ -13,7 +13,7 @@ app_key    = ""
 app_secret = ""
 device_id  = ""
 
-async def on_power_state_callback(device_id, state):
+async def on_power_state_callback(device_id: str, state: bool):
     # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
     return True

@@ -1,6 +1,6 @@
 from button import Button
 from sinricpro import SinricPro 
-from sinricpro.sinricpro_switch import SinricProSwitch
+from sinricpro.devices.sinricpro_switch import SinricProSwitch
 from machine import Pin
 import time
 
@@ -33,7 +33,7 @@ async def handle_push_button_press():
 
 
 # @timed_function
-async def on_power_state_callback(device_id, state):
+async def on_power_state_callback(device_id: str, state: bool):
     # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
     return True
