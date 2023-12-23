@@ -11,9 +11,15 @@ from sinricpro.capabilities.volume_controller import VolumeController
 class SinricProSpeaker(PowerStateController, SettingController, PushNotificationController, MuteController,
                        VolumeController, MediaController, InputController, EqualizerController, ModeController):
     """
-    Device to control a smart speaker
+    Represents a smart speaker that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProSpeaker object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
         super().__init__(device_id)
         self.device_id = device_id
 

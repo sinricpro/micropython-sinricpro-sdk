@@ -5,9 +5,15 @@ from sinricpro.capabilities.setting_controller import SettingController
 
 class SinricProFan(PowerStateController, SettingController, PushNotificationController, RangeController):
     """
-    Device to turn on / off a fan and change it's speed
+    Represents a fan that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProCamera object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
         super().__init__(device_id)
         self.device_id = device_id
 

@@ -5,9 +5,16 @@ from sinricpro.capabilities.setting_controller import SettingController
 
 class SinricProDoorbell(Doorbell, SettingController, PushNotificationController):
     """
-    Device to report doorbell events
+    Represents a doorbell that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProDoorbell object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
+
         super().__init__(device_id)
         self.device_id = device_id
 

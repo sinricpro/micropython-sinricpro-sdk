@@ -7,9 +7,16 @@ from sinricpro.capabilities.thermostat_controller import ThermostatController
 class SinricProThermostat(PowerStateController, SettingController, PushNotificationController, ThermostatController,
                        TemperatureSensor):
     """
-    Device to control a TV
+    Represents a thermostat that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProThermostat object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
+
         super().__init__(device_id)
         self.device_id = device_id
 

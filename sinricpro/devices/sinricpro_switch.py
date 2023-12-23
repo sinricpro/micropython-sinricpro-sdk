@@ -5,9 +5,15 @@ from sinricpro.capabilities.setting_controller import SettingController
 
 class SinricProSwitch(PowerStateController, SettingController, PushNotificationController):
     """
-    Device suporting basic on / off command
+    Represents a smart switch that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProSwitch object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
         super().__init__(device_id)
         self.device_id = device_id
 

@@ -6,9 +6,15 @@ from sinricpro.capabilities.thermostat_controller import ThermostatController
 
 class SinricProWindowAC(PowerStateController, SettingController, PushNotificationController, RangeController, ThermostatController):
     """
-    Device to control Window Air Conditioner
+    Represents a window ac or airconditioner that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProWindowAC object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
         super().__init__(device_id)
         self.device_id = device_id
 

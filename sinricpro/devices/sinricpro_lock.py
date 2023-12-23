@@ -4,9 +4,16 @@ from sinricpro.capabilities.setting_controller import SettingController
 
 class SinricProLock(LockController, SettingController, PushNotificationController):
     """
-    Device to control a smart lock
+    Represents a smart lock that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProLock object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
+
         super().__init__(device_id)
         self.device_id = device_id
 

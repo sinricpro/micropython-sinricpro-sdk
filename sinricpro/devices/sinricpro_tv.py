@@ -13,9 +13,16 @@ class SinricProTV(PowerStateController, SettingController, PushNotificationContr
                        VolumeController, MediaController, InputController, EqualizerController, ModeController,
                        ChannelController):
     """
-    Device to control a TV
+    Represents a smart tv that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProTV object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
+
         super().__init__(device_id)
         self.device_id = device_id
 

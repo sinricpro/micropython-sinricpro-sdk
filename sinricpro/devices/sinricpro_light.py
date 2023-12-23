@@ -6,9 +6,16 @@ from sinricpro.capabilities.setting_controller import SettingController
 
 class SinricProLight(PowerStateController, BrightnessController, ColorController, SettingController, ColorTemperatureController):
     """
-    Device to control a light
+    Represents a smart light bulb that can be controlled through SinricPro.
     """
     def __init__(self, device_id):
+        """
+        Initializes the SinricProLight object.
+
+        Args:
+            device_id (str): The unique identifier for the device in SinricPro.
+        """
+
         super().__init__(device_id)
         self.device_id = device_id
 
