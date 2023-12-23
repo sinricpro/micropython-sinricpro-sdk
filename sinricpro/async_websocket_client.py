@@ -1,4 +1,5 @@
 # Credit: https://github.com/Vovaman/micropython_async_websocket_client/tree/dev
+# fixed heatbeat bug
 
 import usocket as socket
 import uasyncio as a
@@ -76,6 +77,9 @@ class AsyncWebsocketClient:
         return line
 
     async def a_read(self, size: int = None):
+        if size == 0:
+            return b''
+
         chunks = []
         while True:
             b = self.sock.read(size)
@@ -128,8 +132,7 @@ class AsyncWebsocketClient:
         line = await self.a_readline()
         header = (line)[:-2]
         if not header.startswith(b'HTTP/1.1 101 '):
-            return False
-            # probably need to skip or something?
+            raise Exception(header)
 
         # We don't (currently) need these headers
         # FIXME: should we check the return key?
@@ -147,6 +150,9 @@ class AsyncWebsocketClient:
         # Byte 1: FIN(1) _(1) _(1) _(1) OPCODE(4)
         fin = bool(byte1 & 0x80)
         opcode = byte1 & 0x0f
+
+        if fin and (opcode == OP_PING or opcode == OP_PONG):
+            return fin, opcode, b''
 
         # Byte 2: MASK(1) LENGTH(7)
         mask = bool(byte2 & (1 << 7))
@@ -239,7 +245,7 @@ class AsyncWebsocketClient:
                 # We need to send a pong frame
                 self.write_frame(OP_PONG, data)
                 # And then wait to receive
-                return
+                continue
             elif opcode == OP_CONT:
                 # This is a continuation of a previous frame
                 raise NotImplementedError(opcode)
