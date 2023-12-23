@@ -37,6 +37,8 @@ from sinricpro.capabilities.toggle_controller import ToggleController
 from sinricpro.capabilities.volume_controller import VolumeController
 
 class SinricPro:
+    "The SinricPro class handles device registration, event handling, and communication with the Sinric Pro server."
+
     def __init__(self):
         self.devices = []
         self.ws = AsyncWebsocketClient() # create instance of websocket
@@ -49,9 +51,15 @@ class SinricPro:
         self.timestamp = Timestamp()
 
     def add_device(self, device) -> None:
+        """
+        Add a device to internal device collection.
+        """
         self.devices.append(device)
 
     async def _connect(self) -> None:
+        """
+        Establishes the websocket connection to the Sinric Pro server.
+        """
         # setup device ids
         device_ids = []
         for device in self.devices:
@@ -80,13 +88,17 @@ class SinricPro:
 
         while await self.ws.open():
             data = await self.ws.recv()
-            if self.enable_log : 
+            if self.enable_log :
                 self.log.debug('<-{}'.format(str(data)))
 
-            self.received_queue.put(str(data))
+            if data:
+                self.received_queue.put(str(data))
             gc.collect()
 
     def _get_response_json(self, message_dict, success, value_dict, instance_id='') -> str:
+        """
+        Returns the response for a request.
+        """
         header = {
             "payloadVersion": 2,
             "signatureVersion": 1
@@ -111,6 +123,9 @@ class SinricPro:
         return json.dumps({"header": header, "payload": payload, "signature": signature})
 
     def _get_event_json(self, action:str, device_id:str, value:str, type_of_interaction:str="PHYSICAL_INTERACTION", instance_id=None) -> str:
+        """
+        Returns event json.
+        """
         epoch = self.timestamp.get_timestamp()
 
         header = {
@@ -135,7 +150,12 @@ class SinricPro:
         signature = self.signer.get_signature(self.app_secret, payload)
         return json.dumps( {"header": header, "payload": payload, "signature": signature} )
 
+
     async def _handle_received_request(self, message_dict, action) -> None:
+        """
+        Processes incoming requests from the server, invoking device-specific callbacks for actions like turning on/off, adjusting brightness, etc.
+        """
+
         try:
             target_device_id = message_dict['payload']['deviceId']
 
@@ -303,6 +323,9 @@ class SinricPro:
 
 
     async def _process_publish_queue(self) -> None:
+        """
+        Sends outgoing messages (events or responses) to the server.
+        """
         try:
             async for message in self.publish_queue:
                 if self.enable_log :
@@ -312,6 +335,9 @@ class SinricPro:
             self.log.error(f'Error : {e}')
 
     async def _process_received_queue(self) -> None:
+        """
+        Processes incoming messages from the server.
+        """
         async for message in self.received_queue:
             message_dict = json.loads(message)
 
@@ -332,6 +358,9 @@ class SinricPro:
             gc.collect()
 
     def _raise_event(self, device_id, action, value=None, cause="PHYSICAL_INTERACTION", instance_id=None) -> None:
+        """
+         Queues an event to be sent to the server, representing a device state change.
+        """
         if self.limiter.try_acquire() :
             response = self._get_event_json(action, device_id, value, cause, instance_id)
             self.log.info(f'Adding event: {response} to publish queue!')
@@ -340,78 +369,130 @@ class SinricPro:
             self.log.error("Rate limit excceded. Adjusted rate:{}".format(self.limiter.events_per_minute))
 
     def _send_power_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
-        self.log.info('Sending power state event')
+        """
+        Sends a power state change event.
+        """
         value = {"state" : "On" if state else "Off"}
         self._raise_event(device_id, SinricProConstants.SET_POWER_STATE, value, cause)
 
     def _send_power_level_callback(self, device_id:str, power_level: int, cause="PHYSICAL_INTERACTION") -> None:
-        self.log.info('Sending power level event')
+        """
+        Sends a power level change event.
+        """
         value = {"powerLevel" : power_level}
         self._raise_event(device_id, SinricProConstants.SET_POWER_LEVEL, value, cause)
 
     def _send_brightness_event_callback(self, device_id:str, brightness: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a brightness change event.
+        """
         value = {"brightness" : brightness}
         self._raise_event(device_id, SinricProConstants.SET_BRIGHTNESS, value, cause)
 
     def _send_change_channel_event_callback(self, device_id:str, channel_name: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a channel change event.
+        """
         value = {"channel": { "name": channel_name }}
         self._raise_event(device_id, SinricProConstants.CHANGE_CHANNEL, value, cause)
 
     def _send_color_event_callback(self, device_id:str, r: int, g: int, b: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a color change event.
+        """
         value = {"color": { "b": b, "g": g, "r": r }}
         self._raise_event(device_id, SinricProConstants.SET_COLOR, value, cause)
 
     def _send_color_temperature_event_callback(self, device_id:str, color_temperature: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a color temperature change event.
+        """
         value = {"colorTemperature": color_temperature}
         self._raise_event(device_id, SinricProConstants.COLOR_TEMPERATURE, value, cause)
 
     def _send_contact_event_callback(self, device_id:str, detected: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a contact sensor state change event.
+        """
         value = {"state" : "open" if detected else "closed"}
         self._raise_event(device_id, SinricProConstants.SET_CONTACT_STATE, value, cause)
 
     def _send_door_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends a door state change event.
+        """
         value = {"mode" : "Open" if state else "Close"}
         self._raise_event(device_id, SinricProConstants.SET_MODE, value, cause)
 
     def _send_doorbell_event_callback(self, device_id:str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends doorbell state change event.
+        """
         value = {"state" : "pressed" }
         self._raise_event(device_id, SinricProConstants.DOORBELLPRESS, value, cause)
 
     def _send_bands_event_callback(self, device_id:str, bands: str, level: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends bands (Speaker/TV) change event.
+        """
         value = { "bands": [ { "value": level, "name": bands }] }
         self._raise_event(device_id, SinricProConstants.BANDS, value, cause)
 
     def _send_select_input_event_callback(self, device_id:str, intput: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends input state change event.
+        """
         value = { "input": intput }
         self._raise_event(device_id, SinricProConstants.INPUT, value, cause)
 
     def _send_lock_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends lock state change event.
+        """
         value = {"state" : "LOCKED" if state else "UNLOCKED"}
         self._raise_event(device_id, SinricProConstants.SET_LOCK_STATE, value, cause)
 
     def _send_media_control_event_callback(self, device_id:str, media_control: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends media control state change event.
+        """
         value = {"control" : media_control}
         self._raise_event(device_id, SinricProConstants.MEDIA_CONTROL, value, cause)
 
     def _send_mode_event_callback(self, device_id:str, instance_id: str, mode: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends mode change event.
+        """
         value = {"mode" : mode}
         self._raise_event(device_id, SinricProConstants.SET_MODE, value, cause, instance_id)
 
     def _send_motion_event_callback(self, device_id:str, detected: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends motion detected/not-detected change event.
+        """
         value = {"state" : "detected" if detected else "notDetected"}
         self._raise_event(device_id, SinricProConstants.MOTION, value, cause)
 
     def _send_mute_event_callback(self, device_id:str, mute: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends mute event.
+        """
         value = {"mute" : mute}
         self._raise_event(device_id, SinricProConstants.SET_MUTE, value, cause)
 
     def _set_percentage_event_callback(self, device_id:str, percentage: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends precentage change event.
+        """
         value = {"percentage" : percentage}
         self._raise_event(device_id, SinricProConstants.SET_PRECENTAGE, value, cause)
 
     def _send_power_sensor_event_callback(self, device_id:str, start_time: int, voltage: float, current: float, power: float = -1.0,
                                           apparent_power: float = -1.0, reactive_power: float = -1.0, factor: float = -1.0,
                                           cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends power consumption event.
+        """
         value = {
             "startTime": start_time,
             "voltage": voltage,
@@ -424,35 +505,60 @@ class SinricPro:
         self._raise_event(device_id, SinricProConstants.POWER_USAGE, value, cause)
 
     def _send_push_notification_event_callback(self, device_id: str, notification: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends push notification event.
+        """
         value = {"notification": notification}
         self._raise_event(device_id, SinricProConstants.PUSH_NOTIFICATION, value, cause)
 
     def _send_range_value_event_callback(self, device_id: str, instance: str, range_value, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends numeric value change event.
+        """
         value = {"rangeValue": range_value}
         self._raise_event(device_id, SinricProConstants.SET_RANGE_VALUE, value, cause, instance)
 
     def _send_temperature_event_callback(self, device_id: str, temperature: float, humidity: float = -1, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends temperature change event.
+        """
         value = {"humidity": humidity, "temperature": temperature}
         self._raise_event(device_id, SinricProConstants.CURRENT_TEMPERATURE, value, cause)
 
     def _send_thermostat_mode_event_callback(self, device_id: str, thermostat_mode: str, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends thermostat mode event.
+        """
         value = {"thermostatMode": thermostat_mode }
         self._raise_event(device_id, SinricProConstants.SET_THERMOSTAT_MODE, value, cause)
 
     def _send_target_temperature_event_callback(self, device_id: str, temperature: float, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends termostat or ac unit target temperature change.
+        """
         value = {"temperature": temperature}
         self._raise_event(device_id, SinricProConstants.TARGET_TEMPERATURE, value, cause)
 
     def _send_toggle_state_event_callback(self, device_id: str, instance: str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends toggle state change event.
+        """
         value = {"state" : "On" if state else "Off"}
         self._raise_event(device_id, SinricProConstants.SET_TOGGLE_STATE, value, cause, instance)
 
     def _send_volume_event_callback(self, device_id: str, volume: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends volume change event.
+        """
         value = {"volume" : volume}
         self._raise_event(device_id, SinricProConstants.SET_TOGGLE_STATE, value, cause)
 
 
     def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
+        """
+        Connect to SinricPro server and starts listening to commands.
+        """
+
         if is_null_or_empty(app_key):
             raise exceptions.InvalidAppKeyError
 

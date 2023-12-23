@@ -1,5 +1,7 @@
 class SinricProConstants(object):
-
+    """
+    Sinric Pro constants.
+    """
     # actions
     DOORBELLPRESS = 'DoorbellPress'
     CURRENT_TEMPERATURE = 'currentTemperature'

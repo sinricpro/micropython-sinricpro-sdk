@@ -1,4 +1,7 @@
 class exceptions:
+    """
+    Sinric Pro SDK exceptions.
+    """
     class SinricProError(Exception):
         pass
 
