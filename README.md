@@ -1,6 +1,6 @@
 # Micropython-SinricPro SDK
 
-Alexa, Google Home, SmartThings and cloud for MicroPython.
+The simple way to control your MicroPython board with Amazon Alexa, Google Home, SmartThings, Homebridge and Node-RED.
 
 
 ### Which device types are working as of now?
