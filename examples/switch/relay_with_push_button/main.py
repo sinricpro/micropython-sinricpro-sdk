@@ -1,3 +1,11 @@
+#   Example for how to control a relay connected to GPIO 26 and also a use a push button connected to GPIO 0 to turn on/off
+
+#   If you encounter any issues:
+#   - visit https://github.com/sinricpro/micropython-sinricpro-sdk/issues and check for existing issues or open a new one
+
+# To enable sdk debug output, add enable_log=True flag
+# eg: sinricpro.start(app_key, app_secret, enable_log=True)
+
 from button import Button
 from sinricpro import SinricPro 
 from sinricpro.devices.sinricpro_switch import SinricProSwitch
@@ -34,6 +42,7 @@ def button_change(button, event):
 
         sinricpro_switch.send_power_state_event(state=is_powered_on)
 
+# push button is connected to GPIO 0
 button_one = Button(0, False, button_change)
 
 async def handle_push_button_press():
@@ -84,7 +93,7 @@ def start_sinricpro():
     sinricpro_switch.on_power_state(on_power_state_callback)
 
     sinricpro.add_device(sinricpro_switch)
-    sinricpro.start(app_key, app_secret, enable_log=True)
+    sinricpro.start(app_key, app_secret)
 
 # main coroutine
 async def main():

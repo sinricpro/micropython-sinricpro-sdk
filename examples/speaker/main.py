@@ -1,4 +1,10 @@
-# Speaker
+#   Example for how to use SinricPro Speaker
+
+#   If you encounter any issues:
+#   - visit https://github.com/sinricpro/micropython-sinricpro-sdk/issues and check for existing issues or open a new one
+
+# To enable sdk debug output, add enable_log=True flag
+# eg: sinricpro.start(app_key, app_secret, enable_log=True)
 
 from sinricpro import SinricPro
 from sinricpro.devices.sinricpro_speaker import SinricProSpeaker

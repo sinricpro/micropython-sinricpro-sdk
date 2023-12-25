@@ -75,7 +75,7 @@ def start_sinricpro():
     sinricpro_thermostat.on_adjust_target_temperature(on_adjust_target_temperature_callback)
 
     sinricpro.add_device(sinricpro_thermostat)
-    sinricpro.start(app_key, app_secret, server_url="ws://testws.sinric.pro:80", enable_log=True)
+    sinricpro.start(app_key, app_secret)
 
 # main coroutine
 async def main():
