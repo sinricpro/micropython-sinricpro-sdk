@@ -1,35 +1,21 @@
-from button import Button
-from sinricpro import SinricPro 
+from sinricpro import SinricPro
 from sinricpro.devices.sinricpro_switch import SinricProSwitch
 from machine import Pin
-import time
 
 import uasyncio as a
 import network
 
+# enter wifi details
 ssid = ""
 ssid_password = ""
+
+# get from https://portal.sinric.pro
 app_key    = ""
 app_secret = ""
 device_id  = ""
 
-sinricpro = SinricPro()
-sinricpro_switch = SinricProSwitch(device_id)
-
-def button_change(button, event):
-    global sinricpro_switch
-
-    if event == Button.PRESSED:
-        sinricpro_switch.send_power_state_event(state=True)
-    if event == Button.RELEASED:
-        sinricpro_switch.send_power_state_event(state=False)
-
-button_one = Button(0, False, button_change)
-
-async def handle_push_button_press():
-    while True:
-        button_one.update()
-        await a.sleep_ms(0) # needed. otherwise other events won't fire!
+# relay is connected to GPIO 26
+relay = Pin(26, Pin.OUT)
 
 async def on_disconnected():
     print('Disconnected from SinricPro...reboot?')
@@ -37,15 +23,18 @@ async def on_disconnected():
 async def on_connected():
     print('Connected to SinricPro...')
 
-# @timed_function
 async def on_power_state_callback(device_id: str, state: bool):
-    # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
+
+    if state:
+        relay.value(1)
+    else:
+        relay.value(0)
+
     return True
 
 # connect to wifi
-# @timed_function
-def do_wifi_connect():
+def do_connect():
     sta_if = network.WLAN(network.STA_IF)
     ap = network.WLAN(network.AP_IF) # create access-point interface
     ap.active(False)         # deactivate the interface
@@ -58,13 +47,12 @@ def do_wifi_connect():
     print('Connected network config:', sta_if.ifconfig())
 
 # start sinricpro
-def start_sinricpro():
-    global sinricpro
-    global sinricpro_switch
-
+def do_sinricpro():
+    sinricpro = SinricPro()
     sinricpro.on_connected(on_connected)
     sinricpro.on_disconnected(on_disconnected)
 
+    sinricpro_switch = SinricProSwitch(device_id)
     sinricpro_switch.on_power_state(on_power_state_callback)
 
     sinricpro.add_device(sinricpro_switch)
@@ -72,9 +60,8 @@ def start_sinricpro():
 
 # main coroutine
 async def main():
-    do_wifi_connect()
-    start_sinricpro()
-    a.create_task(handle_push_button_press())
+    do_connect()
+    do_sinricpro()
 
     while True:
         await a.sleep_ms(10_000)
