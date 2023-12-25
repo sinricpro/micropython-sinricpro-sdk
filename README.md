@@ -1,7 +1,10 @@
 # Micropython-SinricPro SDK
 
-Alexa, Google Home, SmartThings and cloud for MicroPython.
+The simple way to control your MicroPython board with Amazon Alexa, Google Home, SmartThings, Homebridge and Node-RED.
 
+Tutorials: 
+
+- ##### [How to turn on and off a Relay](https://help.sinric.pro/pages/tutorials/switch/micropython/how-to-turn-on-and-off-a-relay-using-micropython.html)
 
 ### Which device types are working as of now?
 
