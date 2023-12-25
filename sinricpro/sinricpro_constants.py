@@ -36,7 +36,7 @@ class SinricProConstants(object):
     PUSH_NOTIFICATION = 'pushNotification'
     MOTION = 'motion'
     SET_CONTACT_STATE = 'setContactState'
-    SET_PRECENTAGE = 'setPercentage'
+    SET_PERCENTAGE = 'setPercentage'
     POWER_USAGE = 'powerUsage'
     SET_TOGGLE_STATE = 'setToggleState'
 
