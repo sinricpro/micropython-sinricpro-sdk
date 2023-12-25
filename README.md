@@ -2,7 +2,6 @@
 
 Alexa, Google Home, SmartThings and cloud for MicroPython.
 
-Still under development!
 
 ### Which device types are working as of now?
 
@@ -22,7 +21,7 @@ Still under development!
 | `Motion Sensor` | <ul><li>- [x] Completed</li></ul> | - 
 | `Contact Sensor` | <ul><li>- [x] Completed</li></ul> | - 
 | `Speaker` | <ul><li>- [x] Completed</li></ul> | - 
-| `Custom Device Types` | - | - 
+| `Custom Device Types` | Pending | - 
 
 ### How do I install it?
 
