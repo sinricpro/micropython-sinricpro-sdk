@@ -1,5 +1,7 @@
 # Credit: https://github.com/Vovaman/micropython_async_websocket_client/tree/dev
-# fixed heatbeat bug
+
+# heatbeat bug fixed.
+# on connect and disconnect callbacks added.
 
 import usocket as socket
 import uasyncio as a
@@ -9,6 +11,7 @@ from ucollections import namedtuple
 import ure as re
 import ustruct as struct
 import ussl
+
 # Opcodes
 OP_CONT = const(0x0)
 OP_TEXT = const(0x1)
@@ -28,17 +31,20 @@ CLOSE_TOO_BIG = const(1009)
 CLOSE_MISSING_EXTN = const(1010)
 CLOSE_BAD_CONDITION = const(1011)
 
-
 URL_RE = re.compile(r'(wss|ws)://([A-Za-z0-9-\.]+)(?:\:([0-9]+))?(/.+)?')
 URI = namedtuple('URI', ('protocol', 'hostname', 'port', 'path'))
 
-
 class AsyncWebsocketClient:
-    def __init__(self, ms_delay_for_read: int = 5):
+    def __init__(self, ms_delay_for_read: int = 5, on_connected = None, on_disconnected = None,  ):
         self._open = False
         self.delay_read = ms_delay_for_read
         self._lock_for_open = a.Lock()
         self.sock = None
+        self.is_alive = False
+        self.ping_interval = 60 * 1000 * 3
+        self.ping_missed_count = 0
+        self.on_connected_callback = on_connected
+        self.on_disconnected_callback = on_disconnected
 
     async def open(self, new_val: bool = None):
         await self._lock_for_open.acquire()
@@ -52,6 +58,10 @@ class AsyncWebsocketClient:
         return to_return
 
     async def close(self):
+        if self.ping_task:
+            self.ping_task.cancel()
+            self.ping_task = None
+
         return await self.open(False)
 
     def urlparse(self, uri):
@@ -140,7 +150,13 @@ class AsyncWebsocketClient:
             line = await self.a_readline()
             header = (line)[:-2]
 
-        return await self.open(True)
+        open_success = await self.open(True)
+        if open_success:
+            self.ping_task = a.create_task(self._send_ping())
+            if self.on_connected_callback is not None:
+                await self.on_connected_callback()
+
+        return open_success
 
     async def read_frame(self, max_size=None):
 
@@ -240,6 +256,7 @@ class AsyncWebsocketClient:
                 return
             elif opcode == OP_PONG:
                 # Ignore this frame, keep waiting for a data frame
+                self.ping_missed_count = 0
                 continue
             elif opcode == OP_PING:
                 # We need to send a pong frame
@@ -263,3 +280,19 @@ class AsyncWebsocketClient:
         else:
             raise TypeError()
         self.write_frame(opcode, buf)
+
+    async def _send_ping(self):
+        disconnected = False
+
+        while not disconnected:
+            await a.sleep_ms(self.ping_interval)
+            if self.ping_missed_count >= 1:
+                disconnected = True
+                self.ping_missed_count = 0
+                if self.on_disconnected_callback is not None:
+                    await self.on_disconnected_callback()
+                else:
+                    print("Lost connection to SinricPro?")
+            else:
+                self.ping_missed_count += 1
+                self.write_frame(OP_PING, b'')

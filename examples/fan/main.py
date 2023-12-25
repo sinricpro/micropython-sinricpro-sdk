@@ -19,6 +19,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_fan = SinricProFan(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 async def on_power_state_callback(device_id: str, state: bool):
     print(f'device id: {device_id} state: {state}')
     return True
@@ -48,6 +54,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_fan
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_fan.on_power_state(on_power_state_callback)
     sinricpro_fan.on_range_value(on_range_value_callback)
 

@@ -19,6 +19,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_dim_switch = SinricProDimSwitch(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 async def on_power_state_callback(device_id: str, state: bool):
     # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
@@ -51,6 +57,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_dim_switch
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_dim_switch.on_power_state(on_power_state_callback)
     sinricpro_dim_switch.on_power_level(on_power_level_callback)
     sinricpro_dim_switch.on_adjust_power_level(on_adjust_power_level_callback)

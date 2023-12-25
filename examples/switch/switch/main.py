@@ -13,6 +13,12 @@ app_key    = ""
 app_secret = ""
 device_id  = ""
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 async def on_power_state_callback(device_id: str, state: bool):
     # Implement your logic to handle the power state change here
     print(f'device id: {device_id} state: {state}')
@@ -34,8 +40,12 @@ def do_connect():
 # start sinricpro
 def do_sinricpro():
     sinricpro = SinricPro()
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
+
     sinricpro_switch = SinricProSwitch(device_id)
     sinricpro_switch.on_power_state(on_power_state_callback)
+
     sinricpro.add_device(sinricpro_switch)
     sinricpro.start(app_key, app_secret, enable_log=True)
 

@@ -20,6 +20,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_light = SinricProLight(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 async def on_power_state_callback(device_id: str, state: bool) -> bool:
     print(f'device id: {device_id} state: {state}')
     return True
@@ -67,6 +73,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_light
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_light.on_power_state(on_power_state_callback)
     sinricpro_light.on_brightness(on_brightness_callback)
     sinricpro_light.on_adjust_brightness(on_adjust_brightness_callback)
@@ -74,7 +82,6 @@ def start_sinricpro():
     sinricpro_light.on_color_temperature(on_color_temperature_callback)
     sinricpro_light.on_increase_color_temperature(on_increase_color_temperature_callback)
     sinricpro_light.on_decrease_color_temperature(on_decrease_color_temperature_callback)
-
     sinricpro.add_device(sinricpro_light)
     sinricpro.start(app_key, app_secret)
 

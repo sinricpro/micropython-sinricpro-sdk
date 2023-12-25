@@ -19,6 +19,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_lock = SinricProLock(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 async def on_lock_state_callback(device_id: str, state: bool) -> bool:
     print(f'device id: {device_id} state: {state}')
     return True
@@ -48,6 +54,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_lock
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_lock.on_lock_state(on_lock_state_callback)
 
     sinricpro.add_device(sinricpro_lock)

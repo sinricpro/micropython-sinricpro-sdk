@@ -25,6 +25,11 @@ def contact_detected_or_not_detected(detected: bool)->None:
     global sinricpro_contact_sensor
     sinricpro_contact_sensor.send_contact_event(detected)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
 
 # connect to wifi
 # @timed_function
@@ -45,6 +50,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_contact_sensor
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro.add_device(sinricpro_contact_sensor)
     sinricpro.start(app_key, app_secret)
 

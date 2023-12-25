@@ -31,6 +31,11 @@ async def handle_push_button_press():
         button_one.update()
         await a.sleep_ms(0) # needed. otherwise other events won't fire!
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
 
 # @timed_function
 async def on_power_state_callback(device_id: str, state: bool):
@@ -57,7 +62,11 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_switch
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
+
     sinricpro_switch.on_power_state(on_power_state_callback)
+
     sinricpro.add_device(sinricpro_switch)
     sinricpro.start(app_key, app_secret, enable_log=True)
 

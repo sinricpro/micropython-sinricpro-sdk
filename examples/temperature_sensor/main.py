@@ -38,10 +38,19 @@ def do_wifi_connect():
             pass
     print('Connected network config:', sta_if.ifconfig())
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 # start sinricpro
 def start_sinricpro():
     global sinricpro
     global sinricpro_temperature_sensor
+
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
 
     sinricpro.add_device(sinricpro_temperature_sensor)
     sinricpro.start(app_key, app_secret)

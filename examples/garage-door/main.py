@@ -19,6 +19,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_garage_door = SinricProGarageDoor(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 # @timed_function
 async def on_set_mode_callback(device_id: str, mode: str):
     print(f'device id: {device_id}, mode: {mode}')
@@ -50,8 +56,9 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_garage_door
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_garage_door.on_set_mode(on_set_mode_callback)
-
     sinricpro.add_device(sinricpro_garage_door)
     sinricpro.start(app_key, app_secret)
 

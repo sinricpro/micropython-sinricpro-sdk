@@ -18,6 +18,12 @@ device_id  = ""
 sinricpro = SinricPro()
 sinricpro_window_ac = SinricProWindowAC(device_id)
 
+async def on_disconnected():
+    print('Disconnected from SinricPro...reboot?')
+
+async def on_connected():
+    print('Connected to SinricPro...')
+
 # @timed_function
 async def on_power_state_callback(device_id: str, state: str)->bool:
     print(f'device id: {device_id} state: {state}')
@@ -63,6 +69,8 @@ def start_sinricpro():
     global sinricpro
     global sinricpro_window_ac
 
+    sinricpro.on_connected(on_connected)
+    sinricpro.on_disconnected(on_disconnected)
     sinricpro_window_ac.on_power_state(on_power_state_callback)
     sinricpro_window_ac.on_thermostat_mode(on_thermostat_mode_callback)
     sinricpro_window_ac.on_target_temperature(on_target_temperature_callback)
