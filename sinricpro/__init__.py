@@ -12,4 +12,5 @@ from .utils.logging import getLogger
 from .utils.rate_limiter import RateLimiter
 from .utils.timestamp import Timestamp
 
-from .capabilities.power_state_controller import PowerStateController
+from .version import __version__
+

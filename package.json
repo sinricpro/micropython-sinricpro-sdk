@@ -8,7 +8,8 @@
       ["sinricpro/exceptions.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/exceptions.py"],
       ["sinricpro/sinricpro.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro.py"],
       ["sinricpro/sinricpro_constants.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro_constants.py"],
-      
+      ["sinricpro/version.py", "github:sinricpro/sinricpro/micropython-sinricpro-sdk/sinricpro/version.py"],
+
       ["sinricpro/capabilities/airquality_sensor.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/airquality_sensor.py"],
       ["sinricpro/capabilities/brightness_controller.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/brightness_controller.py"],
       ["sinricpro/capabilities/channel_controller.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/channel_controller.py"],
@@ -62,5 +63,5 @@
       ["sinricpro/utils/timestamp.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/timestamp.py"],
       ["sinricpro/utils/utilities.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/utilities.py"]
     ],
-    "version": "0.0.1"
+    "version": "1.1.1"
   }
