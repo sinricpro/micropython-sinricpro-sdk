@@ -1,7 +1,6 @@
 import uasyncio
 import json
 import gc
-import time
 from sinricpro.async_websocket_client import AsyncWebsocketClient
 from sinricpro.async_queue import AsyncQueue
 from sinricpro.exceptions import exceptions
@@ -35,20 +34,32 @@ from sinricpro.capabilities.temperature_sensor import TemperatureSensor
 from sinricpro.capabilities.thermostat_controller import ThermostatController
 from sinricpro.capabilities.toggle_controller import ToggleController
 from sinricpro.capabilities.volume_controller import VolumeController
+from sinricpro.version import __version__ as sdkversion
 
 class SinricPro:
     "The SinricPro class handles device registration, event handling, and communication with the Sinric Pro server."
 
     def __init__(self):
         self.devices = []
-        self.ws = AsyncWebsocketClient() # create instance of websocket
+        self.ws = AsyncWebsocketClient(
+            on_connected=self.on_websocket_connected,
+            on_disconnected=self.on_websocket_disconnected
+        ) # create instance of websocket
         self.publish_queue = AsyncQueue(5) # create publish queue
         self.received_queue = AsyncQueue(5) # create publish queue
         self.signer = Signer()
-        self.sdkversion = '0.0.1' # todo: read from settings?
-        self.log = getLogger("SinricPro")
+        self.sdkversion = sdkversion
+        self.logger = getLogger("SinricPro")
         self.limiter = RateLimiter(60)
         self.timestamp = Timestamp()
+        self.on_connected_callback = None
+        self.on_disconnected_callback = None
+
+    def on_disconnected(self, callback):
+        self.on_disconnected_callback = callback
+
+    def on_connected(self, callback):
+        self.on_connected_callback = callback
 
     def add_device(self, device) -> None:
         """
@@ -60,41 +71,39 @@ class SinricPro:
         """
         Establishes the websocket connection to the Sinric Pro server.
         """
+        try:
+            # Prepare device IDs for the connection:
+            device_ids = ';'.join(device.device_id for device in self.devices)
 
-        # Prepare device IDs for the connection:
-        device_ids = []
-        for device in self.devices:
-            device_ids.append(device.device_id)
+            # Create WebSocket headers for the connection:
+            headers = []
+            headers.append(("appkey", self.app_key))
+            headers.append(("deviceids", device_ids))
+            headers.append(("platform", 'micropython'))
+            headers.append(('restoredevicestates', ('true' if self.restore_device_states else 'false')))
+            headers.append(("sdkversion", self.sdkversion))
+
             if self.enable_log :
-                self.log.debug(f"Adding {device.device_id}.")
+                self.logger.debug(f"Connecting to {self.server_url}..")
 
-        # Create WebSocket headers for the connection:
-        headers = []
-        headers.append(("appkey", self.app_key))
-        headers.append(("deviceids", ';'.join(device_ids)))
-        headers.append(("platform", 'micropython'))
-        headers.append(('restoredevicestates', ('true' if self.restore_device_states else 'false')))
-        headers.append(("sdkversion", self.sdkversion))
+            # Initiate the WebSocket handshake:
+            await self.ws.handshake(self.server_url, headers=headers)
 
-        if self.enable_log :
-            self.log.debug(f"Connecting to {self.server_url}")
-
-        # Initiate the WebSocket handshake:
-        if not await self.ws.handshake(self.server_url, headers=headers):
-            self.log.error("Connection failed!")
-            raise RuntimeError("Cannot connect to SinricPro server!.")
-
-        if self.enable_log :
-            self.log.debug("Connected!")
-
-        while await self.ws.open():
-            data = await self.ws.recv()
             if self.enable_log :
-                self.log.debug('<-{}'.format(str(data)))
+                self.logger.debug("Connected!")
 
-            if data:
-                self.received_queue.put(str(data)) # Put data in a queue for further handling
-            gc.collect()
+            # Main loop for receiving data:
+            while await self.ws.open():
+                data = await self.ws.recv()
+                if self.enable_log :
+                    self.logger.debug('<-{}'.format(str(data)))
+
+                if data:
+                    self.received_queue.put(str(data)) # Put data in a queue for further handling
+                await uasyncio.sleep(0)  # Yield control for other tasks
+        except Exception as e:
+            self.logger.error(f"Connection error: {e}")
+            raise RuntimeError("Failed to connect to SinricPro server!")
 
     def _get_response_json(self, message_dict, success, value_dict, instance_id='') -> str:
         """
@@ -151,7 +160,6 @@ class SinricPro:
         signature = self.signer.get_signature(self.app_secret, payload)
         return json.dumps( {"header": header, "payload": payload, "signature": signature} )
 
-
     async def _handle_received_request(self, message_dict, action) -> None:
         """
         Processes incoming requests from the server, invoking device-specific callbacks for actions like turning on/off, adjusting brightness, etc.
@@ -162,211 +170,57 @@ class SinricPro:
 
             # look for the device id and invoke the callback
             for device in self.devices:
-                if device.device_id == target_device_id :
+                if device.device_id == target_device_id:
                     success = False
-                    instance_id=None
+                    instance_id = None
 
-                    if action == SinricProConstants.SET_POWER_STATE:
-                        state = message_dict['payload']['value']['state'] == "On"
-                        if device.power_state_callback is not None:
-                            success = await device.power_state_callback(target_device_id, state)
-                        else:
-                            self.log.error("callback 'power_state' isn't defined")
+                    callback_map = {
+                        SinricProConstants.SET_POWER_STATE: ('power_state_callback', 'state'),
+                        SinricProConstants.SET_POWER_LEVEL: ('on_power_level_callback', 'powerLevel'),
+                        SinricProConstants.ADJUST_POWER_LEVEL: ('on_adjust_power_level_callback', 'powerLevelDelta'),
+                        SinricProConstants.SET_BRIGHTNESS: ('on_brightness_callback', 'brightness'),
+                        SinricProConstants.ADJUST_BRIGHTNESS: ('on_adjust_brightness_callback', 'brightnessDelta'),
+                        SinricProConstants.SET_COLOR: ('on_color_callback', 'color'),
+                        SinricProConstants.SET_COLOR_TEMPERATURE: ('on_color_temperature_callback', 'colorTemperature'),
+                        SinricProConstants.INCREASE_COLOR_TEMPERATURE: ('on_increase_color_temperature_callback', None),
+                        SinricProConstants.DECREASE_COLOR_TEMPERATURE: ('on_decrease_color_temperature_callback', None),
+                        SinricProConstants.SET_THERMOSTAT_MODE: ('on_thermostat_mode_callback', 'thermostatMode'),
+                        SinricProConstants.SET_RANGE_VALUE: ('on_range_value_callback', 'rangeValue'),
+                        SinricProConstants.ADJUST_RANGE_VALUE: ('on_adjust_range_value_callback', 'rangeValueDelta'),
+                        SinricProConstants.TARGET_TEMPERATURE: ('on_target_temperature_callback', 'temperature'),
+                        SinricProConstants.ADJUST_TARGET_TEMPERATURE: ('on_adjust_target_temperature_callback', 'temperature'),
+                        SinricProConstants.SET_VOLUME: ('on_set_volume_callback', 'volume'),
+                        SinricProConstants.ADJUST_VOLUME: ('on_adjust_volume_callback', 'volume'),
+                        SinricProConstants.MEDIA_CONTROL: ('on_media_control_callback', 'control'),
+                        SinricProConstants.SELECT_INPUT: ('on_select_input_callback', 'input'),
+                        SinricProConstants.SKIP_CHANNELS: ('on_skip_channels_callback', 'channelCount'),
+                        SinricProConstants.SET_MUTE: ('on_mute_callback', 'mute'),
+                        SinricProConstants.SET_BANDS: ('on_set_bands_callback', 'bands'),
+                        SinricProConstants.ADJUST_BANDS: ('on_adjust_bands_callback', 'bands'),
+                        SinricProConstants.RESET_BANDS: ('on_reset_bands_callback', 'bands'),
+                        SinricProConstants.SET_MODE: ('on_set_mode_callback', 'mode'),
+                        SinricProConstants.SET_LOCK_STATE: ('on_lock_state_callback', 'state'),
+                        SinricProConstants.SET_PERCENTAGE: ('on_set_percentage_callback', 'percentage'),
+                        SinricProConstants.SET_TOGGLE_STATE: ('on_toggle_state_callback', 'state')
+                    }
 
-                    elif action == SinricProConstants.SET_POWER_LEVEL:
-                        power_level = message_dict['payload']['value']['powerLevel']
-                        if device.on_power_level_callback is not None:
-                            success = await device.on_power_level_callback(target_device_id, power_level)
-                        else:
-                            self.log.error("callback 'on_power_level' isn't defined")
-
-                    elif action == SinricProConstants.ADJUST_POWER_LEVEL:
-                        power_level_delta = message_dict['payload']['value']['powerLevelDelta']
-                        if device.on_adjust_power_level_callback is not None:
-                            success = await device.on_adjust_power_level_callback(target_device_id, power_level_delta)
-                        else:
-                            self.log.error("callback 'on_adjust_power_level' isn't defined")
-
-                    elif action == SinricProConstants.SET_BRIGHTNESS:
-                        brightness = message_dict['payload']['value']['brightness']
-                        if device.on_brightness_callback is not None:
-                            success = await device.on_brightness_callback(target_device_id, brightness)
-                        else:
-                            self.log.error("callback 'on_brightness' isn't defined")
-
-                    elif action == SinricProConstants.ADJUST_BRIGHTNESS:
-                        brightness_delta = message_dict['payload']['value']['brightnessDelta']
-                        if device.on_adjust_brightness_callback is not None:
-                            success = await device.on_adjust_brightness_callback(target_device_id, brightness_delta)
-                        else:
-                            self.log.error("callback 'on_adjust_brightness' isn't defined")
-
-                    elif action == SinricProConstants.SET_COLOR:
-                        color = message_dict['payload']['value']['color']
-                        if device.on_color_callback is not None:
-                            success = await device.on_color_callback(target_device_id, color["r"], color["g"], color["b"])
-                        else:
-                            self.log.error("callback 'on_color' isn't defined")
-
-                    elif action == SinricProConstants.SET_COLOR_TEMPERATURE:
-                        color_temperature = message_dict['payload']['value']['colorTemperature']
-                        if device.on_color_temperature_callback is not None:
-                            success = await device.on_color_temperature_callback(target_device_id, color_temperature)
-                        else:
-                            self.log.error("callback 'on_color_temperature' isn't defined")
-
-                    elif action == SinricProConstants.INCREASE_COLOR_TEMPERATURE:
-                        if device.on_increase_color_temperature_callback is not None:
-                            success = await device.on_increase_color_temperature_callback(target_device_id)
-                        else:
-                            self.log.error("callback 'on_increase_color_temperature' isn't defined")
-
-                    elif action == SinricProConstants.DECREASE_COLOR_TEMPERATURE:
-                        if device.on_decrease_color_temperature_callback is not None:
-                            success = await device.on_decrease_color_temperature_callback(target_device_id)
-                        else:
-                            self.log.error("callback 'on_decrease_color_temperature' isn't defined")
-
-                    elif action == SinricProConstants.SET_THERMOSTAT_MODE:
-                        thermostat_mode = message_dict['payload']['value']['thermostatMode']
-                        if device.on_thermostat_mode_callback is not None:
-                            success = await device.on_thermostat_mode_callback(target_device_id, thermostat_mode)
-                        else:
-                            self.log.error("callback 'on_thermostat_mode' isn't defined")
-
-                    elif action == SinricProConstants.SET_RANGE_VALUE:
-                        range_value = message_dict['payload']['value']['rangeValue']
+                    if action in callback_map:
+                        callback_name, value_key = callback_map[action]
+                        value = message_dict['payload']['value'].get(value_key, None) if value_key else None
 
                         if "instanceId" in message_dict:
                             instance_id = message_dict['instanceId']
-                            if device.on_range_value_callback is not None:
-                                success = await self.on_range_value_instances[instance_id](target_device_id, range_value)
+                            callback = self.on_range_value_instances[instance_id] if action == SinricProConstants.SET_RANGE_VALUE else getattr(device, callback_name, None)
                         else:
-                            if device.on_range_value_callback is not None:
-                                success = await device.on_range_value_callback(target_device_id, range_value)
-                            else:
-                                self.log.error("callback 'on_range_value' isn't defined")
+                            callback = getattr(device, callback_name, None)
 
-                    elif action == SinricProConstants.ADJUST_RANGE_VALUE:
-                        range_value_delta = message_dict['payload']['value']['rangeValueDelta']
-                        if device.on_adjust_range_value_callback is not None:
-                            success = await device.on_adjust_range_value_callback(target_device_id, range_value_delta)
+                        if callback is not None:
+                            success = await callback(target_device_id, value)
                         else:
-                            self.log.error("callback 'on_adjust_range_value' isn't defined")
+                            self.logger.error(f"callback '{callback_name}' isn't defined")
 
-                    elif action == SinricProConstants.TARGET_TEMPERATURE:
-                        temperature = message_dict['payload']['value']['temperature']
-                        if device.on_target_temperature_callback is not None:
-                            success = await device.on_target_temperature_callback(target_device_id, temperature)
-                        else:
-                            self.log.error("callback 'on_target_temperature' isn't defined")
-
-                    elif action == SinricProConstants.ADJUST_TARGET_TEMPERATURE:
-                        temperature = message_dict['payload']['value']['temperature']
-                        if device.on_adjust_target_temperature_callback is not None:
-                            success = await device.on_adjust_target_temperature_callback(target_device_id, temperature)
-                        else:
-                            self.log.error("callback 'on_adjust_target_temperature' isn't defined")
-
-                    elif action == SinricProConstants.SET_VOLUME:
-                        volume = message_dict['payload']['value']['volume']
-                        if device.on_set_volume_callback is not None:
-                            success = await device.on_set_volume_callback(target_device_id, volume)
-                        else:
-                            self.log.error("callback 'on_set_volume' isn't defined")
-
-                    elif action == SinricProConstants.ADJUST_VOLUME:
-                        volume = message_dict['payload']['value']['volume']
-                        if device.on_adjust_volume_callback is not None:
-                            success = await device.on_adjust_volume_callback(target_device_id, volume)
-                        else:
-                            self.log.error("callback 'on_adjust_volume' isn't defined")
-
-                    elif action == SinricProConstants.MEDIA_CONTROL:
-                        control = message_dict['payload']['value']['control']
-                        if device.on_media_control_callback is not None:
-                            success = await device.on_media_control_callback(target_device_id, control)
-                        else:
-                            self.log.error("callback 'on_media_control' isn't defined")
-
-                    elif action == SinricProConstants.SELECT_INPUT:
-                        selected_input = message_dict['payload']['value']['input']
-                        if device.on_select_input_callback is not None:
-                            success = await device.on_select_input_callback(target_device_id, selected_input)
-                        else:
-                            self.log.error("callback 'on_select_input' isn't defined")
-
-                    elif action == SinricProConstants.SKIP_CHANNELS:
-                        channel_count = message_dict['payload']['value']['channelCount']
-                        if device.on_skip_channels_callback is not None:
-                            success = await device.on_skip_channels_callback(target_device_id, channel_count)
-                        else:
-                            self.log.error("callback 'on_skip_channels' isn't defined")
-
-                    elif action == SinricProConstants.SET_MUTE:
-                        mute = message_dict['payload']['value']['mute']
-                        if device.on_mute_callback is not None:
-                            success = await device.on_mute_callback(target_device_id, mute)
-                        else:
-                            self.log.error("callback 'on_mute' isn't defined")
-
-                    elif action == SinricProConstants.SET_BANDS:
-                        bands = message_dict['payload']['value']['bands']
-                        if device.on_set_bands_callback is not None:
-                            success = await device.on_set_bands_callback(target_device_id, bands)
-                        else:
-                            self.log.error("callback 'on_set_bands' isn't defined")
-
-                    elif action == SinricProConstants.ADJUST_BANDS:
-                        bands = message_dict['payload']['value']['bands']
-                        if device.on_adjust_bands_callback is not None:
-                            success = await device.on_adjust_bands_callback(target_device_id, bands)
-                        else:
-                            self.log.error("callback 'on_adjust_bands' isn't defined")
-
-                    elif action == SinricProConstants.RESET_BANDS:
-                        bands = message_dict['payload']['value']['bands']
-                        if device.on_reset_bands_callback is not None:
-                            success = await device.on_reset_bands_callback(target_device_id, bands)
-                        else:
-                            self.log.error("callback 'on_reset_bands' isn't defined")
-
-                    elif action == SinricProConstants.SET_MODE:
-                        mode = message_dict['payload']['value']['mode']
-                        if "instanceId" in message_dict:
-                            instance_id = message_dict['instanceId']
-                            if device.on_set_mode_callback is not None:
-                                success = await self.on_set_mode_instances[instance_id](target_device_id, mode)
-                            else:
-                                self.log.error("callback 'on_set_mode' isn't defined")
-                        else:
-                            if device.on_set_mode_callback is not None:
-                                success = await device.on_set_mode_callback(target_device_id, mode)
-                            else:
-                                self.log.error("callback 'on_set_mode' isn't defined")
-
-                    elif action == SinricProConstants.SET_LOCK_STATE:
-                        state = message_dict['payload']['value']['state']
-                        if device.on_lock_state_callback is not None:
-                            success = await device.on_lock_state_callback(target_device_id, state)
-                            if success:
-                                message_dict['payload']['value']["state"] = f"{state.upper()}ED"
-                        else:
-                            self.log.error("callback 'on_lock_state' isn't defined")
-
-                    elif action == SinricProConstants.SET_PRECENTAGE:
-                        percentage = message_dict['payload']['value']['state']
-                        if device.on_set_percentage_callback is not None:
-                            success = await device.on_set_percentage_callback(target_device_id, percentage)
-                        else:
-                            self.log.error("callback 'on_set_percentage' isn't defined")
-
-                    elif action == SinricProConstants.SET_TOGGLE_STATE:
-                        state = message_dict['payload']['value']['state']
-                        if device.on_toggle_state_callback is not None:
-                            success = await device.on_toggle_state_callback(target_device_id, percentage)
-                        else:
-                            self.log.error("callback 'on_toggle_state' isn't defined")
+                        if action == SinricProConstants.SET_LOCK_STATE and success:
+                            message_dict['payload']['value']["state"] = f"{value.upper()}ED"
 
                     value_dict = message_dict['payload']['value']
                     response = self._get_response_json(message_dict=message_dict, success=success, value_dict=value_dict, instance_id=instance_id)
@@ -374,7 +228,7 @@ class SinricPro:
                     break
 
         except Exception as e:
-            self.log.error(f'Error : {e}')
+            self.logger.error(f'Error: {e}')
 
 
     async def _process_publish_queue(self) -> None:
@@ -384,10 +238,10 @@ class SinricPro:
         try:
             async for message in self.publish_queue:
                 if self.enable_log :
-                    self.log.info('-> : {}'.format(message))
+                    self.logger.info('-> : {}'.format(message))
                 await self.ws.send(message)
         except Exception as e:
-            self.log.error(f'Error : {e}')
+            self.logger.error(f'Error : {e}')
 
     async def _process_received_queue(self) -> None:
         """
@@ -398,7 +252,7 @@ class SinricPro:
 
             if "timestamp" in message_dict:
                 if self.enable_log :
-                    self.log.debug("Got TimeStamp!")
+                    self.logger.debug("Got TimeStamp!")
                     # sending events needs timestamp.
                     self.timestamp.set_timestamp(message_dict["timestamp"])
             else:
@@ -418,10 +272,10 @@ class SinricPro:
         """
         if self.limiter.try_acquire() :
             response = self._get_event_json(action, device_id, value, cause, instance_id)
-            self.log.info(f'Adding event: {response} to publish queue!')
+            self.logger.info(f'Adding event: {response} to publish queue!')
             self.publish_queue.put(response)
         else:
-            self.log.error("Rate limit excceded. Adjusted rate:{}".format(self.limiter.events_per_minute))
+            self.logger.error("Rate limit excceded. Adjusted rate:{}".format(self.limiter.events_per_minute))
 
     def _send_power_state_event_callback(self, device_id:str, state: bool, cause="PHYSICAL_INTERACTION") -> None:
         """
@@ -608,24 +462,23 @@ class SinricPro:
         value = {"volume" : volume}
         self._raise_event(device_id, SinricProConstants.SET_TOGGLE_STATE, value, cause)
 
+    async def on_websocket_disconnected(self):
+        self.logger.error("Disconnected from SinricPro..!")
 
-    def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
-        """
-        Connect to SinricPro server and starts listening to commands.
-        """
+        try:
+            self.logger.debug("Closing websocket connection")
+            self.ws.close()
+        except Exception as e:
+            self.logger.error(f'Error : {e}')
 
-        if is_null_or_empty(app_key):
-            raise exceptions.InvalidAppKeyError
+        if self.on_disconnected_callback is not None:
+            await self.on_disconnected_callback()
 
-        if is_null_or_empty(app_secret):
-            raise exceptions.InvalidAppSecretError
+    async def on_websocket_connected(self):
+        if self.on_connected_callback is not None:
+            await self.on_connected_callback()
 
-        self.app_key = app_key
-        self.app_secret = app_secret
-        self.server_url = server_url
-        self.restore_device_states = restore_device_states
-        self.enable_log = enable_log
-
+    def _add_device_event_callbacks(self):
         # hook events
         for device in self.devices:
             if isinstance(device, PowerStateController):
@@ -678,10 +531,26 @@ class SinricPro:
             elif isinstance(device, VolumeController):
                 device.set_send_volume_event(self._send_volume_event_callback)
 
+    def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
+        """
+        Connect to SinricPro server and starts listening to commands.
+        """
+
+        if is_null_or_empty(app_key) or is_null_or_empty(app_secret):
+            raise exceptions.InvalidAppKeyError
+
+        self.app_key = app_key
+        self.app_secret = app_secret
+        self.server_url = server_url
+        self.restore_device_states = restore_device_states
+        self.enable_log = enable_log
+
+        self._add_device_event_callbacks()
+
         if self.enable_log :
-            self.log.level  = DEBUG
+            self.logger.level  = DEBUG
         else:
-            self.log.level  = ERROR
+            self.logger.level  = ERROR
 
         uasyncio.create_task(self._connect())
         uasyncio.create_task(self._process_received_queue())
