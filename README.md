@@ -69,3 +69,21 @@ Tested on
 4. Create a new file called main.py to code.
 5. Connect to ESP32 in PyMakr -> Upload -> Hardreset device.
 6. Please use Pylint for formatting (https://marketplace.visualstudio.com/items?itemName=ms-python.pylint) 
+
+### To remove the library manually:
+
+```
+import mip
+mip.install("shutil")
+import shutil
+shutil.rmtree("/lib/sinricpro")
+```
+
+### To list files in ESP32 or PICOW
+
+import os
+def listdir(dir):
+    for i in os.listdir(dir):
+        print('{}/{}'.format(dir,i))
+    
+listdir("/")
