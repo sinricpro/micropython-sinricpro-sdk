@@ -4,7 +4,7 @@ The simple way to control your MicroPython board with Amazon Alexa, Google Home,
 
 Tutorials: 
 
-- ##### [How to turn on and off a Relay](https://help.sinric.pro/pages/tutorials/switch/micropython/how-to-turn-on-and-off-a-relay-using-micropython.html)
+- ##### [How to turn on and off a Relay (ESP32)](https://help.sinric.pro/pages/tutorials/switch/micropython/how-to-turn-on-and-off-a-relay-using-micropython.html)
 
 ### Which device types are working as of now?
 
@@ -55,7 +55,11 @@ Checkout the examples directory.
 
 ### Will it run on Microcontroller X?
 
-Code is being developed and tested on a ESP32 devkit with MicroPython 1.21
+Tested on
+
+1. MicroPython v1.21.0 on 2023-10-05; Generic ESP32 module with ESP32
+
+2. MicroPython v1.21.0 on 2023-10-06; Raspberry Pi Pico W with RP2040
 
 ### For development using PyMakr:
 
