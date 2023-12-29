@@ -42,7 +42,7 @@ or
 py -m mpremote connect <COM_PORT> mip install github:sinricpro/micropython-sinricpro-sdk
 ```
 
-Using mip:
+Using mip (in REPL):
 ```
 import mip
 mip.install("github:sinricpro/micropython-sinricpro-sdk")
