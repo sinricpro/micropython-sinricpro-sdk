@@ -48,6 +48,8 @@ import mip
 mip.install("github:sinricpro/micropython-sinricpro-sdk")
 ```
 
+SinrciPro library will be installed in the /lib folder. You can manually copy the `sinricpro` folder to /lib as well
+
 ## How can I use it?
 
 Checkout the examples directory.
