@@ -8,22 +8,22 @@ Tutorials:
 
 ### Which device types are working as of now?
 
-|Device Type |Supported ? | Notes
+|Device Type |Supported ? | Example
 |---        |---               |--- 
-| `Switch`  | <ul><li>- [x] Completed</li></ul>           | -
-| `Blinds`  | <ul><li>- [x] Completed</li></ul> | -
-| `Dimmable Switch` | <ul><li>- [x] Completed</li></ul>  | -
-| `Fan` | <ul><li>- [x] Completed</li></ul> | -
-| `Garage Door` | <ul><li>- [x] Completed</li></ul> | -
-| `Light` | <ul><li>- [x] Completed</li></ul>  | -
-| `Lock` | <ul><li>- [x] Completed</li></ul> | -
-| `Thermostat` | <ul><li>- [x] Completed</li></ul>  | -
-| `TV` | <ul><li>- [x] Completed</li></ul> | -
-| `AC Unit` | <ul><li>- [x] Completed</li></ul> | -
-| `Temperature Sensor` | <ul><li>- [x] Completed</li></ul> | -
-| `Motion Sensor` | <ul><li>- [x] Completed</li></ul> | - 
-| `Contact Sensor` | <ul><li>- [x] Completed</li></ul> | - 
-| `Speaker` | <ul><li>- [x] Completed</li></ul> | - 
+| `Switch`  | <ul><li>- [x] Completed</li></ul>           | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/switch)
+| `Blinds`  | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/blinds)
+| `Dimmable Switch` | <ul><li>- [x] Completed</li></ul>  | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/dim-switch)
+| `Fan` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/dim-switch)
+| `Garage Door` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/fan)
+| `Light` | <ul><li>- [x] Completed</li></ul>  | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/light)
+| `Lock` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/lock)
+| `Thermostat` | <ul><li>- [x] Completed</li></ul>  | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/thermostat)
+| `TV` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/tv)
+| `AC Unit` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/ac-unit)
+| `Temperature Sensor` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/temperature_sensor)
+| `Motion Sensor` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/motion-sensor) 
+| `Contact Sensor` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/contact-sensor) 
+| `Speaker` | <ul><li>- [x] Completed</li></ul> | [here](https://github.com/sinricpro/micropython-sinricpro-sdk/tree/main/examples/speaker) 
 | `Custom Device Types` | Pending | - 
 
 ### How do I install it?
