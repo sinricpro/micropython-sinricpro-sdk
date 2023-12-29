@@ -80,10 +80,11 @@ shutil.rmtree("/lib/sinricpro")
 ```
 
 ### To list files in ESP32 or PICOW
-
+```
 import os
 def listdir(dir):
     for i in os.listdir(dir):
         print('{}/{}'.format(dir,i))
     
 listdir("/")
+```
