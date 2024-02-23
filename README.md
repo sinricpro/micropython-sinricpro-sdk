@@ -1,5 +1,7 @@
 # Micropython-SinricPro SDK
 
+[![Discord](https://img.shields.io/badge/discord-%23micropython-blue.svg)](https://discord.gg/rq9vcRcSqA) </br>
+
 The simple way to control your MicroPython board with Amazon Alexa, Google Home, SmartThings, Homebridge and Node-RED.
 
 Tutorials: 
@@ -90,3 +92,6 @@ def listdir(dir):
     
 listdir("/")
 ```
+
+## Join the community!
+Join us on our [Official Discord Server](https://discord.gg/rq9vcRcSqA)!
