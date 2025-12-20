@@ -80,7 +80,6 @@ class SinricPro:
             headers.append(("appkey", self.app_key))
             headers.append(("deviceids", device_ids))
             headers.append(("platform", 'micropython'))
-            headers.append(('restoredevicestates', ('true' if self.restore_device_states else 'false')))
             headers.append(("sdkversion", self.sdkversion))
 
             if self.enable_log :
