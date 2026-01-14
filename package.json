@@ -63,5 +63,5 @@
       ["sinricpro/utils/timestamp.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/timestamp.py"],
       ["sinricpro/utils/utilities.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/utilities.py"]
     ],
-    "version": "2.0.2"
+    "version": "2.1.0"
   }
