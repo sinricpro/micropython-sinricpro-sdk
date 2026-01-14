@@ -482,52 +482,52 @@ class SinricPro:
         for device in self.devices:
             if isinstance(device, PowerStateController):
                 device.set_send_power_state_event_callback(self._send_power_state_event_callback)
-            elif isinstance(device, PowerLevelController):
+            if isinstance(device, PowerLevelController):
                 device.set_send_power_level_event_callback(self._send_power_level_callback)
-            elif isinstance(device, BrightnessController):
+            if isinstance(device, BrightnessController):
                 device.set_send_brightness_event_callback(self._send_brightness_event_callback)
-            elif isinstance(device, ChannelController):
+            if isinstance(device, ChannelController):
                 device.set_send_change_channel_event_callback(self._send_change_channel_event_callback)
-            elif isinstance(device, ColorController):
+            if isinstance(device, ColorController):
                 device.set_send_color_event_callback(self._send_color_event_callback)
-            elif isinstance(device, ColorTemperatureController):
+            if isinstance(device, ColorTemperatureController):
                 device.send_color_temperature_event_callback(self._send_color_temperature_event_callback)
-            elif isinstance(device, ContactSensor):
+            if isinstance(device, ContactSensor):
                 device.set_send_contact_event_callback(self._send_contact_event_callback)
-            elif isinstance(device, DoorController):
+            if isinstance(device, DoorController):
                 device.set_send_door_state_event_callback(self._send_door_state_event_callback)
-            elif isinstance(device, Doorbell):
+            if isinstance(device, Doorbell):
                 device.set_send_doorbell_event_callback(self._send_doorbell_event_callback)
-            elif isinstance(device, EqualizerController):
+            if isinstance(device, EqualizerController):
                 device.set_send_bands_event_callback(self._send_bands_event_callback)
-            elif isinstance(device, InputController):
+            if isinstance(device, InputController):
                 device.set_send_select_input_event_callback(self._send_select_input_event_callback)
-            elif isinstance(device, LockController):
+            if isinstance(device, LockController):
                 device.set_send_lock_state_event_callback(self._send_lock_state_event_callback)
-            elif isinstance(device, MediaController):
+            if isinstance(device, MediaController):
                 device.set_send_media_control_event_callback(self._send_media_control_event_callback)
-            elif isinstance(device, ModeController):
+            if isinstance(device, ModeController):
                 device.set_send_mode_event_callback(self._send_mode_event_callback)
-            elif isinstance(device, MotionSensor):
+            if isinstance(device, MotionSensor):
                 device.set_send_motion_event_callback(self._send_motion_event_callback)
-            elif isinstance(device, MuteController):
+            if isinstance(device, MuteController):
                 device.set_send_mute_event_callback(self._send_mute_event_callback)
-            elif isinstance(device, PercentageController):
+            if isinstance(device, PercentageController):
                 device.set_send_set_percentage_event_callback(self._set_percentage_event_callback)
-            elif isinstance(device, PowerSensor):
+            if isinstance(device, PowerSensor):
                 device.set_send_power_sensor_event_callback(self._send_power_sensor_event_callback)
-            elif isinstance(device, PushNotificationController):
+            if isinstance(device, PushNotificationController):
                 device.set_send_push_notification_event_callback(self._send_push_notification_event_callback)
-            elif isinstance(device, RangeController):
+            if isinstance(device, RangeController):
                 device.set_send_range_value_event_callback(self._send_range_value_event_callback)
-            elif isinstance(device, TemperatureSensor):
+            if isinstance(device, TemperatureSensor):
                 device.set_send_temperature_event_callback(self._send_temperature_event_callback)
-            elif isinstance(device, ThermostatController):
+            if isinstance(device, ThermostatController):
                 device.set_send_thermostat_mode_event_callback(self._send_thermostat_mode_event_callback)
                 device.set_send_target_temperature_event_callback(self._send_target_temperature_event_callback)
-            elif isinstance(device, ToggleController):
+            if isinstance(device, ToggleController):
                 device.set_send_toggle_state_event_callback(self._send_toggle_state_event_callback)
-            elif isinstance(device, VolumeController):
+            if isinstance(device, VolumeController):
                 device.set_send_volume_event(self._send_volume_event_callback)
 
     def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
