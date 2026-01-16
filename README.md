@@ -61,9 +61,9 @@ Checkout the examples directory.
 
 Tested on
 
-1. MicroPython v1.21.0 on 2023-10-05; Generic ESP32 module with ESP32
+1. *MicroPython v1.27.0 on 2025-12-09 Generic ESP32 module with ESP32*
 
-2. MicroPython v1.21.0 on 2023-10-06; Raspberry Pi Pico W with RP2040
+2. *MicroPython v1.27.0 on 2025-12-09; Raspberry Pi Pico W with RP2040*
 
 ### For development using PyMakr:
 
@@ -73,6 +73,15 @@ Tested on
 4. Create a new file called main.py to code.
 5. Connect to ESP32 in PyMakr -> Upload -> Hardreset device.
 6. Please use Pylint for formatting (https://marketplace.visualstudio.com/items?itemName=ms-python.pylint) 
+
+Tutorial: [How to Control a Relay (Turn On/Off) Using MicroPython on an ESP32 with Pymakr](https://help.sinric.pro/pages/tutorials/switch/micropython/how-to-turn-on-and-off-a-relay-using-micropython)
+
+### For development using Thonny:
+
+1. Install Micropython (https://docs.micropython.org/en/latest/esp32/tutorial/intro.html](https://projects.raspberrypi.org/en/projects/get-started-pico-w/1)
+2. Install SinricPro library
+
+Tutorial: [How to Control a Relay (Turn On/Off) Using MicroPython on an Raspberry Pi Pico W with Thonny](https://help.sinric.pro/pages/tutorials/switch/micropython/how-to-turn-on-and-off-a-relay-using-micropython-raspberry-pi-picow-with-thonny)
 
 ### To remove the library manually:
 
