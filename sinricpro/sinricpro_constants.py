@@ -39,6 +39,7 @@ class SinricProConstants(object):
     SET_PERCENTAGE = 'setPercentage'
     POWER_USAGE = 'powerUsage'
     SET_TOGGLE_STATE = 'setToggleState'
+    AIR_QUALITY = 'airQuality'
 
     # payload attributes
     POWER_LEVEL = 'powerLevel'

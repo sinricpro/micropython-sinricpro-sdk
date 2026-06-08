@@ -9,6 +9,7 @@ from sinricpro.utils.utilities import is_null_or_empty
 from sinricpro.utils.signer import Signer
 from sinricpro.utils.logging import getLogger, DEBUG, ERROR
 from sinricpro.capabilities.power_state_controller import PowerStateController
+from sinricpro.capabilities.airquality_sensor import AirQualitySensor
 from sinricpro.utils.rate_limiter import RateLimiter
 from sinricpro.utils.timestamp import Timestamp
 from sinricpro.capabilities.brightness_controller import BrightnessController
@@ -395,6 +396,13 @@ class SinricPro:
         value = {"percentage" : percentage}
         self._raise_event(device_id, SinricProConstants.SET_PRECENTAGE, value, cause)
 
+    def _send_airquality_event_callback(self, device_id: str, pm1: int, pm2_5: int, pm10: int, cause="PHYSICAL_INTERACTION") -> None:
+        """
+        Sends air quality event.
+        """
+        value = {"pm1": pm1, "pm2_5": pm2_5, "pm10": pm10}
+        self._raise_event(device_id, SinricProConstants.AIR_QUALITY, value, cause)
+
     def _send_power_sensor_event_callback(self, device_id:str, start_time: int, voltage: float, current: float, power: float = -1.0,
                                           apparent_power: float = -1.0, reactive_power: float = -1.0, factor: float = -1.0,
                                           cause="PHYSICAL_INTERACTION") -> None:
@@ -480,6 +488,8 @@ class SinricPro:
     def _add_device_event_callbacks(self):
         # hook events
         for device in self.devices:
+            if isinstance(device, AirQualitySensor):
+                device.set_send_airquality_event_callback(self._send_airquality_event_callback)
             if isinstance(device, PowerStateController):
                 device.set_send_power_state_event_callback(self._send_power_state_event_callback)
             if isinstance(device, PowerLevelController):
