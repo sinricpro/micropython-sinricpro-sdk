@@ -491,7 +491,7 @@ class SinricPro:
             if isinstance(device, ColorController):
                 device.set_send_color_event_callback(self._send_color_event_callback)
             if isinstance(device, ColorTemperatureController):
-                device.send_color_temperature_event_callback(self._send_color_temperature_event_callback)
+                device.set_send_color_temperature_event_callback(self._send_color_temperature_event_callback)
             if isinstance(device, ContactSensor):
                 device.set_send_contact_event_callback(self._send_contact_event_callback)
             if isinstance(device, DoorController):
