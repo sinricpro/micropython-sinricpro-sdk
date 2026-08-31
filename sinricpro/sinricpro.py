@@ -35,6 +35,7 @@ from sinricpro.capabilities.temperature_sensor import TemperatureSensor
 from sinricpro.capabilities.thermostat_controller import ThermostatController
 from sinricpro.capabilities.toggle_controller import ToggleController
 from sinricpro.capabilities.volume_controller import VolumeController
+from sinricpro.udp_listener import UdpListener
 from sinricpro.version import __version__ as sdkversion
 
 class SinricPro:
@@ -55,6 +56,7 @@ class SinricPro:
         self.timestamp = Timestamp()
         self.on_connected_callback = None
         self.on_disconnected_callback = None
+        self.udp = None
 
     def on_disconnected(self, callback):
         self.on_disconnected_callback = callback
@@ -99,7 +101,8 @@ class SinricPro:
                     self.logger.debug('<-{}'.format(str(data)))
 
                 if data:
-                    self.received_queue.put(str(data)) # Put data in a queue for further handling
+                    # (message, peer); a peer of None means the cloud socket.
+                    self.received_queue.put((str(data), None))
                 await uasyncio.sleep(0)  # Yield control for other tasks
         except Exception as e:
             self.logger.error(f"Connection error: {e}")
@@ -129,8 +132,48 @@ class SinricPro:
         if instance_id:
             payload['instanceId'] = instance_id
 
-        signature = self.signer.get_signature(self.app_secret, payload)
-        return json.dumps({"header": header, "payload": payload, "signature": signature})
+        return self._sign_and_serialize(header, payload)
+
+    def _sign_and_serialize(self, header, payload) -> str:
+        """
+        Serializes the payload once and splices it into the envelope.
+
+        A receiver verifies by slicing the bytes between '"payload":' and
+        ',"signature"', so the signed bytes have to be the transmitted bytes.
+        Re-serializing here would work only as long as both dumps calls agree.
+        """
+        payload_json = json.dumps(payload, separators=(',', ':'))
+        signature = self.signer.sign_payload_json(self.app_secret, payload_json)
+
+        return '{{"header":{},"payload":{},"signature":{}}}'.format(
+            json.dumps(header, separators=(',', ':')),
+            payload_json,
+            json.dumps(signature, separators=(',', ':')))
+
+    def _get_invalid_signature_json(self, message_dict) -> str:
+        """
+        Signed refusal for a request that failed verification.
+
+        Answering lets a client tell a wrong app secret from an unreachable
+        device. The fields are read defensively: the request is unverified and
+        may be missing anything.
+        """
+        payload_in = message_dict.get('payload', {}) if isinstance(message_dict, dict) else {}
+
+        header = {"payloadVersion": 2, "signatureVersion": 1}
+        payload = {
+            "action": payload_in.get('action', ''),
+            "clientId": payload_in.get('clientId', ''),
+            "createdAt": payload_in.get('createdAt', 0),
+            "deviceId": payload_in.get('deviceId', ''),
+            "message": "Signature is invalid",
+            "replyToken": payload_in.get('replyToken', ''),
+            "success": False,
+            "type": "response",
+            "value": {}
+        }
+
+        return self._sign_and_serialize(header, payload)
 
     def _get_event_json(self, action:str, device_id:str, value:str, type_of_interaction:str="PHYSICAL_INTERACTION", instance_id=None) -> str:
         """
@@ -157,10 +200,9 @@ class SinricPro:
         if instance_id:
             payload['instanceId'] = instance_id
 
-        signature = self.signer.get_signature(self.app_secret, payload)
-        return json.dumps( {"header": header, "payload": payload, "signature": signature} )
+        return self._sign_and_serialize(header, payload)
 
-    async def _handle_received_request(self, message_dict, action) -> None:
+    async def _handle_received_request(self, message_dict, action, origin=None) -> None:
         """
         Processes incoming requests from the server, invoking device-specific callbacks for actions like turning on/off, adjusting brightness, etc.
         """
@@ -224,7 +266,7 @@ class SinricPro:
 
                     value_dict = message_dict['payload']['value']
                     response = self._get_response_json(message_dict=message_dict, success=success, value_dict=value_dict, instance_id=instance_id)
-                    self.publish_queue.put(response)
+                    self.publish_queue.put((response, origin))
                     break
 
         except Exception as e:
@@ -236,9 +278,19 @@ class SinricPro:
         Sends outgoing messages (events or responses) to the server.
         """
         try:
-            async for message in self.publish_queue:
+            async for entry in self.publish_queue:
+                message, origin = entry
+
                 if self.enable_log :
                     self.logger.info('-> : {}'.format(message))
+
+                # A LAN reply goes back to its peer and is never echoed to the
+                # cloud, which is told about state separately.
+                if origin is not None:
+                    if self.udp:
+                        self.udp.send(message, origin)
+                    continue
+
                 await self.ws.send(message)
         except Exception as e:
             self.logger.error(f'Error : {e}')
@@ -247,7 +299,8 @@ class SinricPro:
         """
         Processes incoming messages from the server.
         """
-        async for message in self.received_queue:
+        async for entry in self.received_queue:
+            message, origin = entry
             message_dict = json.loads(message)
 
             if "timestamp" in message_dict:
@@ -257,12 +310,23 @@ class SinricPro:
                     self.timestamp.set_timestamp(message_dict["timestamp"])
             else:
                 # verify signature
-                if not self.signer.verify_signature(message, self.app_secret, message_dict["signature"]["HMAC"]):
-                    raise exceptions.InvalidSignatureError
+                hmac = message_dict.get("signature", {}).get("HMAC", "")
+
+                if not hmac or not self.signer.verify_signature(message, self.app_secret, hmac):
+                    # Answer rather than raise: a forged LAN packet must not take
+                    # down the receive task, and a signed refusal lets a client
+                    # tell a wrong app secret from an unreachable device.
+                    self.logger.error("Signature is invalid")
+
+                    if origin is not None and self.udp:
+                        self.udp.send(self._get_invalid_signature_json(message_dict), origin)
+
+                    gc.collect()
+                    continue
 
                 # process based on action
                 action = message_dict['payload']['action']
-                await self._handle_received_request(message_dict, action)
+                await self._handle_received_request(message_dict, action, origin)
 
             gc.collect()
 
@@ -273,7 +337,7 @@ class SinricPro:
         if self.limiter.try_acquire() :
             response = self._get_event_json(action, device_id, value, cause, instance_id)
             self.logger.info(f'Adding event: {response} to publish queue!')
-            self.publish_queue.put(response)
+            self.publish_queue.put((response, None))
         else:
             self.logger.error("Rate limit excceded. Adjusted rate:{}".format(self.limiter.events_per_minute))
 
@@ -540,7 +604,7 @@ class SinricPro:
             if isinstance(device, VolumeController):
                 device.set_send_volume_event(self._send_volume_event_callback)
 
-    def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False,) -> None:
+    def start(self, app_key, app_secret,*, server_url = "ws://ws.sinric.pro:80", restore_device_states = False, enable_log=False, local_control=True,) -> None:
         """
         Connect to SinricPro server and starts listening to commands.
         """
@@ -560,6 +624,14 @@ class SinricPro:
             self.logger.level  = DEBUG
         else:
             self.logger.level  = ERROR
+
+        # Local control comes up before the cloud so a device that never
+        # reaches SinricPro still answers the app over the LAN.
+        if local_control:
+            listener = UdpListener(self.received_queue)
+            if listener.start():
+                self.udp = listener
+                uasyncio.create_task(listener.run())
 
         uasyncio.create_task(self._connect())
         uasyncio.create_task(self._process_received_queue())

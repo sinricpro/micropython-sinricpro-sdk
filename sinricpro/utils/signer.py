@@ -27,6 +27,12 @@ class Signer:
         #print(f"expected   signature: {signature}")
         return calculated_signature == signature
 
+    def sign_payload_json(self, secret_key, payload_json) -> dict:
+        """Signs an already-serialized payload, so the signed bytes are the sent bytes."""
+        reply_hmac = HMAC(secret_key.encode('utf-8'),
+                          payload_json.encode('utf-8'), digestmod=sha256).digest()
+        return {"HMAC": binascii.b2a_base64(reply_hmac).decode('utf-8')[:-1]}
+
     def get_signature(self, secret_key, payload) -> dict:
         reply_hmac = HMAC(secret_key.encode('utf-8'),
                                     dumps(payload, separators=(',', ':')).encode('utf-8'), digestmod=sha256).digest()
