@@ -309,6 +309,16 @@ class SinricPro:
                     # sending events needs timestamp.
                     self.timestamp.set_timestamp(message_dict["timestamp"])
             else:
+                # A LAN request for another device is dropped before the HMAC.
+                # Verifying every probe a discovering client broadcasts is more
+                # work than a constrained board can absorb, and the answer would
+                # be silence either way.
+                if origin is not None:
+                    wanted = message_dict.get('payload', {}).get('deviceId')
+                    if not any(d.device_id == wanted for d in self.devices):
+                        gc.collect()
+                        continue
+
                 # verify signature
                 hmac = message_dict.get("signature", {}).get("HMAC", "")
 
@@ -628,7 +638,8 @@ class SinricPro:
         # Local control comes up before the cloud so a device that never
         # reaches SinricPro still answers the app over the LAN.
         if local_control:
-            listener = UdpListener(self.received_queue)
+            listener = UdpListener(self.received_queue,
+                                   [d.device_id for d in self.devices])
             if listener.start():
                 self.udp = listener
                 uasyncio.create_task(listener.run())
