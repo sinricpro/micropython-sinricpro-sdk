@@ -8,6 +8,7 @@
       ["sinricpro/exceptions.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/exceptions.py"],
       ["sinricpro/sinricpro.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro.py"],
       ["sinricpro/sinricpro_constants.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/sinricpro_constants.py"],
+      ["sinricpro/udp_listener.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/udp_listener.py"],
       ["sinricpro/version.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/version.py"],
 
       ["sinricpro/capabilities/airquality_sensor.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/airquality_sensor.py"],
@@ -37,6 +38,7 @@
       ["sinricpro/capabilities/toggle_controller.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/toggle_controller.py"],
       ["sinricpro/capabilities/volume_controller.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/capabilities/volume_controller.py"],
 
+      ["sinricpro/devices/sinricpro_airquality_sensor.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/devices/sinricpro_airquality_sensor.py"],
       ["sinricpro/devices/sinricpro_blinds.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/devices/sinricpro_blinds.py"],
       ["sinricpro/devices/sinricpro_camera.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/devices/sinricpro_camera.py"],
       ["sinricpro/devices/sinricpro_contact_sensor.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/devices/sinricpro_contact_sensor.py"],
@@ -63,5 +65,5 @@
       ["sinricpro/utils/timestamp.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/timestamp.py"],
       ["sinricpro/utils/utilities.py", "github:sinricpro/micropython-sinricpro-sdk/sinricpro/utils/utilities.py"]
     ],
-    "version": "2.1.0"
+    "version": "3.0.0"
   }

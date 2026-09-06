@@ -52,6 +52,23 @@ mip.install("github:sinricpro/micropython-sinricpro-sdk")
 
 SinrciPro library will be installed in the /lib folder. You can manually copy the `sinricpro` folder to /lib as well
 
+## Local Control (LAN/UDP)
+
+From v2.3.0 the SDK answers signed commands directly over the local network, so
+a device keeps responding to the SinricPro app while the cloud is unreachable.
+It listens on UDP 3333 and dispatches through the same callbacks as cloud
+requests, so existing code needs no changes.
+
+There is no mDNS announcement: MicroPython has no portable way to publish a
+service record. The app discovers these devices by broadcasting a signed probe
+instead, which needs nothing extra on the device.
+
+To turn it off:
+
+```python
+sinricpro.start(APP_KEY, APP_SECRET, local_control=False)
+```
+
 ## How can I use it?
 
 Checkout the examples directory.
