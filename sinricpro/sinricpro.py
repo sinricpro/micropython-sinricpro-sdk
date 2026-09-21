@@ -257,7 +257,22 @@ class SinricPro:
                             callback = getattr(device, callback_name, None)
 
                         if callback is not None:
-                            success = await callback(target_device_id, value)
+                            result = await callback(target_device_id, value)
+
+                            # A callback may answer with {'success': ..., 'volume': ...}.
+                            # SinricPro stores an adjustVolume response as the device's absolute
+                            # volume, so a reported level replaces the echoed delta.
+                            if isinstance(result, dict):
+                                success = bool(result.get('success', False))
+                                if action == SinricProConstants.ADJUST_VOLUME:
+                                    # The server stores a response value even when success is
+                                    # false, so send nothing rather than the delta on failure.
+                                    if not success:
+                                        message_dict['payload']['value'] = {}
+                                    elif result.get('volume') is not None:
+                                        message_dict['payload']['value'] = {'volume': result['volume']}
+                            else:
+                                success = bool(result)
                         else:
                             self.logger.error(f"callback '{callback_name}' isn't defined")
 

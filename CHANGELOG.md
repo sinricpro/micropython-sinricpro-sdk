@@ -1,3 +1,7 @@
+## [3.1.0]
+
+- fix: An `adjustVolume` response echoed the request value back, so SinricPro stored the relative delta as the device's absolute volume. An `on_adjust_volume` callback can now return `{'success': True, 'volume': <new volume>}` to report the volume after the adjustment; returning `True` still echoes the delta.
+
 ## [3.0.0]
 
 - feat: Local control. Devices answer signed commands over the LAN on UDP 3333, so they keep working while the SinricPro cloud is unreachable. Requests are dispatched through the existing device callbacks - no application changes needed. Disable with `start(..., local_control=False)`.

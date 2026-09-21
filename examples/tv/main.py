@@ -16,6 +16,8 @@ app_key    = ""
 app_secret = ""
 device_id  = ""
 
+current_volume = 50
+
 sinricpro = SinricPro()
 sinricpro_tv = SinricProTV(device_id)
 
@@ -41,9 +43,12 @@ async def on_set_volume_callback(device_id: str, volume: int)->bool:
     return True
 
 # @timed_function
-async def on_adjust_volume_callback(device_id: str, volume: int)->bool:
-    print(f'device id: {device_id} volume: {volume}')
-    return True
+async def on_adjust_volume_callback(device_id: str, delta: int)->dict:
+    global current_volume
+    current_volume = max(0, min(100, current_volume + delta))
+    print(f'device id: {device_id} adjust by: {delta} new volume: {current_volume}')
+    # SinricPro stores the reported volume as the device's level.
+    return {'success': True, 'volume': current_volume}
 
 # @timed_function
 async def on_media_control_callback(device_id: str, media_control: str)->bool:
