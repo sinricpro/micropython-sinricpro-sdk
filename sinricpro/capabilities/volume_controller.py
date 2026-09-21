@@ -30,6 +30,10 @@ class VolumeController:
         """
         Sets a callback function to be invoked when the volume is adjusted by a relative amount.
 
+        SinricPro stores the volume in the response as the device's absolute level, so return
+        {'success': True, 'volume': <new volume>} to report it. Returning True echoes the
+        delta back instead.
+
         Args:
             callback (function): A function that takes the following argument:
                 - delta (int): The amount to adjust the volume by (positive or negative).
