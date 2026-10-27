@@ -38,22 +38,25 @@ URL_RE = re.compile(r'(wss|ws)://([A-Za-z0-9-\.]+)(?:\:([0-9]+))?(/.+)?')
 URI = namedtuple('URI', ('protocol', 'hostname', 'port', 'path'))
 
 class AsyncWebsocketClient:
-    def __init__(self, ms_delay_for_read: int = 5, on_connected = None, on_disconnected = None,  ):
+    def __init__(self, ms_delay_for_read: int = 5, on_connected = None):
         self._open = False
         self.delay_read = ms_delay_for_read
         self._lock_for_open = a.Lock()
         self.sock = None
-        self.is_alive = False
-        self.ping_interval = 60 * 1000 * 3
+        self.ping_task = None
+        # The server pings every 30s, so a whole interval with no inbound frame means the link is dead.
+        self.ping_interval = 60 * 1000
         self.ping_missed_count = 0
         self.on_connected_callback = on_connected
-        self.on_disconnected_callback = on_disconnected
 
     async def open(self, new_val: bool = None):
         await self._lock_for_open.acquire()
         if new_val is not None:
             if not new_val and self.sock:
-                self.sock.close()
+                try:
+                    self.sock.close()
+                except OSError:
+                    pass  # already reset by the peer
                 self.sock = None
             self._open = new_val
         to_return = self._open
@@ -87,6 +90,8 @@ class AsyncWebsocketClient:
             line = self.sock.readline()
             await a.sleep_ms(self.delay_read)
 
+        if not line:
+            raise EOFError()
         return line
 
     async def a_read(self, size: int = None):
@@ -96,6 +101,9 @@ class AsyncWebsocketClient:
         chunks = []
         while True:
             b = self.sock.read(size)
+            # A non-blocking read returns None while idle and b'' only once the peer has closed.
+            if b == b'':
+                raise EOFError()
             await a.sleep_ms(self.delay_read)
             if b:
                 if (size is None or len(b) == size):
@@ -107,8 +115,9 @@ class AsyncWebsocketClient:
 
     async def handshake(self, uri, headers=[]):
         if self.sock:
-            self.close()
+            await self.close()
 
+        self.ping_missed_count = 0
         self.sock = socket.socket()
         self.uri = self.urlparse(uri)
         ai = socket.getaddrinfo(self.uri.hostname, self.uri.port)
@@ -170,9 +179,6 @@ class AsyncWebsocketClient:
         fin = bool(byte1 & 0x80)
         opcode = byte1 & 0x0f
 
-        if fin and (opcode == OP_PING or opcode == OP_PONG):
-            return fin, opcode, b''
-
         # Byte 2: MASK(1) LENGTH(7)
         mask = bool(byte2 & (1 << 7))
         length = byte2 & 0x7f
@@ -189,8 +195,7 @@ class AsyncWebsocketClient:
             data = await self.a_read(length)
         except MemoryError:
             # We can't receive this many bytes, close the socket
-            self.close(code=CLOSE_TOO_BIG)
-            # await self._stream.drain()
+            await self.open(False)
             return True, OP_CLOSE, None
 
         if mask:
@@ -236,16 +241,22 @@ class AsyncWebsocketClient:
 
         self.sock.write(data)
 
+    async def _write_or_close(self, opcode, data=b''):
+        # A failed write means the peer is gone; closing lets recv() return instead of raising in a task.
+        try:
+            self.write_frame(opcode, data)
+        except (OSError, AttributeError):
+            await self.open(False)
+
     async def recv(self):
-        count = 0
         while await self.open():
-            count += 1
             try:
                 fin, opcode, data = await self.read_frame()
-            # except (ValueError, EOFError) as ex:
-            except Exception as ex:
+            except Exception:
                 await self.open(False)
                 return
+
+            self.ping_missed_count = 0
 
             if not fin:
                 raise NotImplementedError()
@@ -259,12 +270,9 @@ class AsyncWebsocketClient:
                 return
             elif opcode == OP_PONG:
                 # Ignore this frame, keep waiting for a data frame
-                self.ping_missed_count = 0
                 continue
             elif opcode == OP_PING:
-                # We need to send a pong frame
-                self.write_frame(OP_PONG, data)
-                # And then wait to receive
+                await self._write_or_close(OP_PONG, data)
                 continue
             elif opcode == OP_CONT:
                 # This is a continuation of a previous frame
@@ -282,20 +290,14 @@ class AsyncWebsocketClient:
             opcode = OP_BYTES
         else:
             raise TypeError()
-        self.write_frame(opcode, buf)
+        await self._write_or_close(opcode, buf)
 
     async def _send_ping(self):
-        disconnected = False
-
-        while not disconnected:
+        while await self.open():
             await a.sleep_ms(self.ping_interval)
             if self.ping_missed_count >= 1:
-                disconnected = True
-                self.ping_missed_count = 0
-                if self.on_disconnected_callback is not None:
-                    await self.on_disconnected_callback()
-                else:
-                    print("Lost connection to SinricPro?")
-            else:
-                self.ping_missed_count += 1
-                self.write_frame(OP_PING, b'')
+                # Closing the socket fails the pending read, which ends recv() and triggers a reconnect.
+                await self.open(False)
+                return
+            self.ping_missed_count += 1
+            await self._write_or_close(OP_PING)

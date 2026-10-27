@@ -51,7 +51,7 @@ async def handle_push_button_press():
         await a.sleep_ms(0) # needed. otherwise other events won't fire!
 
 async def on_disconnected():
-    print('Disconnected from SinricPro...reboot?')
+    print('Disconnected from SinricPro, reconnecting...')
 
 async def on_connected():
     print('Connected to SinricPro...')

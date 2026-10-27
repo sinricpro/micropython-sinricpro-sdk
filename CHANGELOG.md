@@ -1,3 +1,12 @@
+## [3.1.1]
+
+- fix: The SDK now reconnects after the connection drops, with backoff from 1s to 60s. Before this, a dropped connection left the device offline until it was power-cycled.
+- fix: A connection closed by the server is now detected. The receive loop used to keep waiting on the closed socket indefinitely.
+- fix: A failed write (such as `OSError: [Errno 104] ECONNRESET` from a keep-alive ping) no longer kills the ping or publish task; it closes the connection and triggers the reconnect.
+- fix: Any frame received from the server now counts as a keep-alive, and the client pings every 60s instead of every 3 minutes, so a dead link is noticed within about 2 minutes.
+- fix: Ping and pong frames with a payload are read in full, so they no longer desync the stream.
+- fix: `on_disconnected` now fires once per dropped connection.
+
 ## [3.1.0]
 
 - fix: An `adjustVolume` response echoed the request value back, so SinricPro stored the relative delta as the device's absolute volume. An `on_adjust_volume` callback can now return `{'success': True, 'volume': <new volume>}` to report the volume after the adjustment; returning `True` still echoes the delta.
