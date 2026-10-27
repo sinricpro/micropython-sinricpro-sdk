@@ -1,4 +1,5 @@
 import uasyncio
+import utime
 import json
 import gc
 from sinricpro.async_websocket_client import AsyncWebsocketClient
@@ -38,14 +39,17 @@ from sinricpro.capabilities.volume_controller import VolumeController
 from sinricpro.udp_listener import UdpListener
 from sinricpro.version import __version__ as sdkversion
 
+RECONNECT_MIN_DELAY_S = 1
+RECONNECT_MAX_DELAY_S = 60
+RECONNECT_STABLE_MS = 60 * 1000
+
 class SinricPro:
     "The SinricPro class handles device registration, event handling, and communication with the Sinric Pro server."
 
     def __init__(self):
         self.devices = []
         self.ws = AsyncWebsocketClient(
-            on_connected=self.on_websocket_connected,
-            on_disconnected=self.on_websocket_disconnected
+            on_connected=self.on_websocket_connected
         ) # create instance of websocket
         self.publish_queue = AsyncQueue(5) # create publish queue
         self.received_queue = AsyncQueue(5) # create publish queue
@@ -72,41 +76,57 @@ class SinricPro:
 
     async def _connect(self) -> None:
         """
-        Establishes the websocket connection to the Sinric Pro server.
+        Keeps the websocket connection to the Sinric Pro server open, reconnecting after any drop.
         """
-        try:
-            # Prepare device IDs for the connection:
-            device_ids = ';'.join(device.device_id for device in self.devices)
+        # Prepare device IDs for the connection:
+        device_ids = ';'.join(device.device_id for device in self.devices)
 
-            # Create WebSocket headers for the connection:
-            headers = []
-            headers.append(("appkey", self.app_key))
-            headers.append(("deviceids", device_ids))
-            headers.append(("platform", 'micropython'))
-            headers.append(("sdkversion", self.sdkversion))
+        # Create WebSocket headers for the connection:
+        headers = []
+        headers.append(("appkey", self.app_key))
+        headers.append(("deviceids", device_ids))
+        headers.append(("platform", 'micropython'))
+        headers.append(("sdkversion", self.sdkversion))
 
-            if self.enable_log :
-                self.logger.debug(f"Connecting to {self.server_url}..")
-
-            # Initiate the WebSocket handshake:
-            await self.ws.handshake(self.server_url, headers=headers)
-
-            if self.enable_log :
-                self.logger.debug("Connected!")
-
-            # Main loop for receiving data:
-            while await self.ws.open():
-                data = await self.ws.recv()
+        retry_delay_s = RECONNECT_MIN_DELAY_S
+        while True:
+            connected = False
+            connected_at = 0
+            try:
                 if self.enable_log :
-                    self.logger.debug('<-{}'.format(str(data)))
+                    self.logger.debug(f"Connecting to {self.server_url}..")
 
-                if data:
-                    # (message, peer); a peer of None means the cloud socket.
-                    self.received_queue.put((str(data), None))
-                await uasyncio.sleep(0)  # Yield control for other tasks
-        except Exception as e:
-            self.logger.error(f"Connection error: {e}")
-            raise RuntimeError("Failed to connect to SinricPro server!")
+                # Initiate the WebSocket handshake:
+                connected = await self.ws.handshake(self.server_url, headers=headers)
+                connected_at = utime.ticks_ms()
+
+                if self.enable_log :
+                    self.logger.debug("Connected!")
+
+                # Main loop for receiving data:
+                while await self.ws.open():
+                    data = await self.ws.recv()
+                    if self.enable_log :
+                        self.logger.debug('<-{}'.format(str(data)))
+
+                    if data:
+                        # (message, peer); a peer of None means the cloud socket.
+                        self.received_queue.put((str(data), None))
+                    await uasyncio.sleep(0)  # Yield control for other tasks
+            except Exception as e:
+                self.logger.error(f"Connection error: {e}")
+
+            await self.ws.close()
+
+            if connected:
+                # Only a connection that stayed up resets the backoff; the server jails devices that reconnect in a tight loop.
+                if utime.ticks_diff(utime.ticks_ms(), connected_at) > RECONNECT_STABLE_MS:
+                    retry_delay_s = RECONNECT_MIN_DELAY_S
+                await self.on_websocket_disconnected()
+
+            self.logger.info(f"Reconnecting in {retry_delay_s}s")
+            await uasyncio.sleep(retry_delay_s)
+            retry_delay_s = min(retry_delay_s * 2, RECONNECT_MAX_DELAY_S)
 
     def _get_response_json(self, message_dict, success, value_dict, instance_id='') -> str:
         """
@@ -561,14 +581,11 @@ class SinricPro:
     async def on_websocket_disconnected(self):
         self.logger.error("Disconnected from SinricPro..!")
 
-        try:
-            self.logger.debug("Closing websocket connection")
-            self.ws.close()
-        except Exception as e:
-            self.logger.error(f'Error : {e}')
-
         if self.on_disconnected_callback is not None:
-            await self.on_disconnected_callback()
+            try:
+                await self.on_disconnected_callback()
+            except Exception as e:
+                self.logger.error(f'Error : {e}')
 
     async def on_websocket_connected(self):
         if self.on_connected_callback is not None:
