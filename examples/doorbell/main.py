@@ -26,7 +26,7 @@ sinricpro = SinricPro()
 sinricpro_doorbell = SinricProDoorbell(device_id)
 
 async def on_disconnected():
-    print('Disconnected from SinricPro...reboot?')
+    print('Disconnected from SinricPro, reconnecting...')
 
 async def on_connected():
     print('Connected to SinricPro...')

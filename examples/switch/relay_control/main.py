@@ -26,7 +26,7 @@ device_id  = ""
 relay = Pin(26, Pin.OUT)
 
 async def on_disconnected():
-    print('Disconnected from SinricPro...reboot?')
+    print('Disconnected from SinricPro, reconnecting...')
 
 async def on_connected():
     print('Connected to SinricPro...')

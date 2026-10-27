@@ -32,7 +32,7 @@ def motion_detected_or_not_detected(detected: bool)->None:
     sinricpro_motion_sensor.send_motion_event(detected)
 
 async def on_disconnected():
-    print('Disconnected from SinricPro...reboot?')
+    print('Disconnected from SinricPro, reconnecting...')
 
 async def on_connected():
     print('Connected to SinricPro...')
